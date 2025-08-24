@@ -1,0 +1,289 @@
+# Chezmoi Ignore File
+# This file specifies patterns that Chezmoi should ignore
+# Supports templating for conditional ignores
+
+# Common files to ignore
+README.md
+LICENSE
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.log
+*.cache
+
+# Git files
+.git/
+.gitignore
+.gitattributes
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS-specific files
+
+# macOS-specific files on Linux
+{{ if ne .chezmoi.os "darwin" }}
+# macOS applications and preferences
+.yabairc
+.skhdrc
+Library/
+Applications/
+System/
+Users/
+Volumes/
+opt/homebrew/
+usr/local/Caskroom/
+{{ end }}
+
+# Linux-specific files on macOS
+{{ if ne .chezmoi.os "linux" }}
+# Linux system files
+etc/
+var/
+usr/
+proc/
+sys/
+dev/
+run/
+.snapshots/
+{{ end }}
+
+# Windows-specific files (if ever needed)
+{{ if ne .chezmoi.os "windows" }}
+Windows/
+Program Files/
+AppData/
+{{ end }}
+
+# Machine-specific files
+
+# Work-specific files on personal machines
+{{ if not .is_work }}
+.config/work/
+.work-secrets
+{{ end }}
+
+# Personal-specific files on work machines
+{{ if .is_work }}
+.config/personal/
+.personal-secrets
+{{ end }}
+
+# Tool-specific ignores
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+dist/
+build/
+.next/
+.nuxt/
+.cache/
+.nyc_output/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.cache/
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+
+# Go
+vendor/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Java
+target/
+*.class
+*.jar
+*.war
+*.ear
+.m2/
+.gradle/
+
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+packages/
+
+# Ruby
+.bundle/
+vendor/bundle/
+*.gem
+
+# PHP
+vendor/
+composer.lock
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary and backup files
+*.bak
+*.backup
+*~
+.#*
+\#*#
+
+# Security and secrets
+# These should be managed through 1Password or other secure means
+secrets/
+*.key
+*.pem
+*.p12
+*.pfx
+id_rsa
+id_ed25519
+
+# Large files and media
+*.mp4
+*.avi
+*.mkv
+*.mov
+*.wmv
+*.flv
+*.webm
+*.m4v
+*.3gp
+*.mpg
+*.mpeg
+*.mp3
+*.wav
+*.flac
+*.ogg
+*.aac
+*.wma
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.bmp
+*.tiff
+*.svg
+*.ico
+*.webp
+*.pdf
+*.doc
+*.docx
+*.xls
+*.xlsx
+*.ppt
+*.pptx
+*.zip
+*.rar
+*.7z
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+
+# Development-specific ignores
+
+# Testing
+test-results/
+playwright-report/
+cypress/videos/
+cypress/screenshots/
+
+# Build artifacts
+build/
+dist/
+out/
+output/
+release/
+bin/
+obj/
+
+# Documentation builds
+docs/build/
+docs/_build/
+site/
+
+# CI/CD
+.github/workflows/secrets/
+.gitlab-ci.yml.secrets
+
+# Local development
+.local
+.envrc
+.direnv/
+
+# Machine-specific configurations
+{{ if ne .chezmoi.hostname "work-laptop" }}
+.work-config/
+{{ end }}
+
+{{ if ne .chezmoi.hostname "personal-laptop" }}
+.personal-config/
+{{ end }}
+
+# Architecture-specific ignores
+{{ if ne .chezmoi.arch "amd64" }}
+amd64/
+x86_64/
+{{ end }}
+
+{{ if ne .chezmoi.arch "arm64" }}
+arm64/
+aarch64/
+{{ end }}
+
+# Version control
+.svn/
+.hg/
+.bzr/
+
+# Package managers
+.yarn-integrity
+.pnpm-debug.log*
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Lock files (keep these in version control)
+# Uncomment if you want to ignore lock files
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+# Cargo.lock
+# go.sum
+# Gemfile.lock
+# composer.lock

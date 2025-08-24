@@ -1,0 +1,269 @@
+# macOS-specific Configuration
+# This file contains macOS-specific settings and aliases
+# Only loads on macOS systems
+
+{{ if eq .chezmoi.os "darwin" -}}
+# macOS-specific environment variables
+export BASH_SILENCE_DEPRECATION_WARNING=1    # Silence bash deprecation warning
+export HOMEBREW_NO_AUTO_UPDATE=1             # Disable Homebrew auto-update
+export HOMEBREW_NO_ENV_HINTS=1               # Disable Homebrew env hints
+export HOMEBREW_CASK_OPTS="--appdir=/Applications"  # Default cask install location
+
+# macOS-specific paths
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:$PATH"
+export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+export PATH="/Applications/Visual Studio Code.app/Contents/Resources/app/bin:$PATH"
+
+# Library and include paths for Homebrew
+export LDFLAGS="-L/opt/homebrew/lib"
+export CPPFLAGS="-I/opt/homebrew/include"
+export PKG_CONFIG_PATH="/opt/homebrew/lib/pkgconfig"
+
+# macOS-specific aliases
+alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES && killall Finder'
+alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
+alias flushdns='sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder'
+alias cleanup='find . -name ".DS_Store" -delete && find . -name "._*" -delete'
+alias emptytrash='sudo rm -rf ~/.Trash/*'
+alias sleepnow='pmset sleepnow'
+alias lockscreen='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+
+# QuickLook from terminal
+alias ql='qlmanage -p "$@" >& /dev/null'
+
+# macOS system information
+alias macinfo='system_profiler SPSoftwareDataType SPHardwareDataType'
+alias macmodel='sysctl -n hw.model'
+alias macserial='system_profiler SPHardwareDataType | grep "Serial Number"'
+alias macosversion='sw_vers -productVersion'
+
+# Application aliases
+alias code='open -a "Visual Studio Code"'
+alias chrome='open -a "Google Chrome"'
+alias firefox='open -a "Firefox"'
+alias safari='open -a "Safari"'
+alias slack='open -a "Slack"'
+alias discord='open -a "Discord"'
+alias spotify='open -a "Spotify"'
+
+# Development tool aliases
+alias xcode='open -a Xcode'
+alias android-studio='open -a "Android Studio"'
+alias docker-desktop='open -a "Docker Desktop"'
+
+# macOS development functions
+
+# Create a new macOS app bundle
+macapp() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: macapp <app-name>"
+        return 1
+    fi
+
+    local app_name="$1"
+    local app_path="$HOME/Desktop/$app_name.app"
+
+    if [[ -d "$app_path" ]]; then
+        echo "App $app_name already exists at $app_path"
+        return 1
+    fi
+
+    mkdir -p "$app_path/Contents/MacOS"
+    mkdir -p "$app_path/Contents/Resources"
+
+    # Create Info.plist
+    cat > "$app_path/Contents/Info.plist" << EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>$app_name</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.example.$app_name</string>
+    <key>CFBundleName</key>
+    <string>$app_name</string>
+    <key>CFBundleVersion</key>
+    <string>1.0</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
+EOF
+
+    # Create executable script
+    cat > "$app_path/Contents/MacOS/$app_name" << EOF
+#!/bin/bash
+echo "Hello from $app_name!"
+EOF
+
+    chmod +x "$app_path/Contents/MacOS/$app_name"
+
+    echo "Created macOS app: $app_path"
+    echo "To run: open $app_path"
+}
+
+# Show battery information
+battery() {
+    pmset -g batt | grep -E "([0-9]+\%).*" | while read line; do
+        echo "Battery: $line"
+    done
+
+    # Show temperature if available
+    if command -v osx-cpu-temp >/dev/null 2>&1; then
+        echo "CPU Temperature: $(osx-cpu-temp)"
+    fi
+}
+
+# Show disk usage with human readable format
+diskusage() {
+    df -h | head -1
+    df -h | grep -E '^/dev/' | sort -k5 -r
+}
+
+# Show memory usage
+memory() {
+    vm_stat | perl -ne '/page size of (\d+)/ and $size=$1; /Pages\s+(\w+):\s+(\d+)/ and printf("%-16s % 8.2f MB\n", $1, $2 * $size / 1048576);'
+}
+
+# Show network information
+network() {
+    echo "=== Network Interfaces ==="
+    ifconfig | grep -E "^[a-zA-Z]" | cut -d: -f1
+
+    echo ""
+    echo "=== IP Addresses ==="
+    echo "Local IP: $(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null || echo "Not connected")"
+    echo "Public IP: $(curl -s https://api.ipify.org)"
+
+    echo ""
+    echo "=== DNS Servers ==="
+    scutil --dns | grep 'nameserver\[[0-9]*\]'
+}
+
+# Show system information
+sysinfo() {
+    echo "=== macOS System Information ==="
+    echo "Model: $(sysctl -n hw.model)"
+    echo "OS: $(sw_vers -productName) $(sw_vers -productVersion)"
+    echo "Kernel: $(uname -r)"
+    echo "Architecture: $(uname -m)"
+    echo "CPU: $(sysctl -n machdep.cpu.brand_string)"
+    echo "Memory: $(system_profiler SPHardwareDataType | grep "Memory:" | awk '{print $2 $3}')"
+    echo "Disk: $(df -h / | tail -1 | awk '{print $2}')"
+    echo "Uptime: $(uptime)"
+}
+
+# Quick system maintenance
+mac-cleanup() {
+    echo "Running macOS cleanup..."
+
+    # Clear system caches
+    sudo dscacheutil -flushcache
+    sudo killall -HUP mDNSResponder
+
+    # Clear user caches
+    rm -rf ~/Library/Caches/*
+    rm -rf ~/Library/Logs/*
+
+    # Clear browser caches (optional)
+    read -q "REPLY?Clear browser caches? (y/N) "
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm -rf ~/Library/Caches/com.apple.Safari
+        rm -rf ~/Library/Caches/com.google.Chrome
+        rm -rf ~/Library/Caches/org.mozilla.firefox
+    fi
+
+    # Clear temporary files
+    rm -rf /tmp/*
+    rm -rf /var/tmp/*
+
+    # Clear Xcode caches (if Xcode is installed)
+    if [[ -d ~/Library/Developer/Xcode ]]; then
+        rm -rf ~/Library/Developer/Xcode/DerivedData
+        rm -rf ~/Library/Developer/CoreSimulator/Caches
+    fi
+
+    echo "Cleanup completed!"
+}
+
+# Install common macOS development tools
+install-macos-tools() {
+    echo "Installing common macOS development tools..."
+
+    # Install Xcode command line tools
+    if ! xcode-select -p >/dev/null 2>&1; then
+        echo "Installing Xcode command line tools..."
+        xcode-select --install
+    fi
+
+    # Install Homebrew if not installed
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "Installing Homebrew..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+    fi
+
+    # Install essential tools
+    brew install \
+        git \
+        wget \
+        curl \
+        jq \
+        yq \
+        tree \
+        htop \
+        tmux \
+        neovim \
+        fzf \
+        ripgrep \
+        fd \
+        bat \
+        eza \
+        delta \
+        lazygit \
+        lazydocker \
+        1password-cli
+
+    # Install casks
+    brew install --cask \
+        visual-studio-code \
+        google-chrome \
+        firefox \
+        iterm2 \
+        docker \
+        slack \
+        discord \
+        spotify
+
+    echo "macOS tools installed successfully!"
+}
+
+# macOS-specific PATH adjustments
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
+
+# Set default editor for various tools
+export EDITOR="nvim"
+export VISUAL="nvim"
+export GIT_EDITOR="nvim"
+export SVN_EDITOR="nvim"
+
+# macOS-specific completion settings
+# Enable bash completion for macOS
+if [[ -f /opt/homebrew/etc/bash_completion ]]; then
+    . /opt/homebrew/etc/bash_completion
+fi
+
+# Set up macOS-specific key bindings
+# Option + left/right arrow to move by word
+bindkey "^[[1;3C" forward-word
+bindkey "^[[1;3D" backward-word
+
+# Option + delete to delete word
+bindkey "^[[3;3~" kill-word
+
+{{ else -}}
+# This file is only for macOS systems
+echo "macOS-specific configuration loaded on non-macOS system"
+{{ end -}}

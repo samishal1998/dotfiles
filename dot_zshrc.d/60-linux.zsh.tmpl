@@ -1,0 +1,317 @@
+# Linux-specific Configuration
+# This file contains Linux-specific settings and aliases
+# Only loads on Linux systems
+
+{{ if eq .chezmoi.os "linux" -}}
+# Linux-specific environment variables
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CACHE_HOME="$HOME/.cache"
+export XDG_STATE_HOME="$HOME/.local/state"
+
+# Linux-specific paths
+export PATH="/usr/local/bin:/usr/local/sbin:$PATH"
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
+
+# Linux-specific aliases
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+alias ll='ls -alF'
+alias la='ls -A'
+alias l='ls -CF'
+
+# Package management aliases (Debian/Ubuntu)
+alias aptup='sudo apt update && sudo apt upgrade'
+alias aptin='sudo apt install'
+alias aptrm='sudo apt remove'
+alias aptsearch='apt search'
+alias aptshow='apt show'
+alias aptclean='sudo apt autoclean && sudo apt autoremove'
+
+# Package management aliases (Arch Linux)
+alias pacup='sudo pacman -Syu'
+alias pacin='sudo pacman -S'
+alias pacrm='sudo pacman -Rns'
+alias pacsearch='pacman -Ss'
+alias pacinfo='pacman -Si'
+alias paclist='pacman -Qe'
+
+# System management aliases
+alias s='sudo'
+alias systemctl='sudo systemctl'
+alias journalctl='sudo journalctl'
+alias service='sudo service'
+alias modprobe='sudo modprobe'
+alias rmmod='sudo rmmod'
+
+# Network aliases
+alias netstat='ss'  # ss is the modern replacement for netstat
+alias ports='netstat -tlnp'
+alias myip='curl -s https://api.ipify.org && echo'
+alias localip='hostname -I | cut -d" " -f1'
+
+# Process management
+alias psg='ps aux | grep -v grep | grep'
+alias killall='pkill'
+alias top='htop'  # Use htop if available
+
+# File operations
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+alias mkdir='mkdir -p'
+alias chown='sudo chown'
+alias chmod='sudo chmod'
+alias chgrp='sudo chgrp'
+
+# Archive operations
+alias tgz='tar -czf'
+alias tbz='tar -cjf'
+alias txz='tar -cJf'
+alias untgz='tar -xzf'
+alias untbz='tar -xjf'
+alias untxz='tar -xJf'
+
+# Development aliases
+alias code='code'  # VS Code
+alias docker='sudo docker'
+alias docker-compose='sudo docker-compose'
+
+# Linux development functions
+
+# Show system information
+sysinfo() {
+    echo "=== Linux System Information ==="
+    echo "Distro: $(lsb_release -d 2>/dev/null | cut -f2 || cat /etc/os-release | grep PRETTY_NAME | cut -d'"' -f2)"
+    echo "Kernel: $(uname -r)"
+    echo "Architecture: $(uname -m)"
+    echo "CPU: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d: -f2 | sed 's/^[ \t]*//')"
+    echo "Memory: $(free -h | grep '^Mem:' | awk '{print $2}')"
+    echo "Disk: $(df -h / | tail -1 | awk '{print $2}')"
+    echo "Uptime: $(uptime -p)"
+    echo "Load Average: $(uptime | awk -F'load average:' '{print $2}')"
+}
+
+# Show battery information (for laptops)
+battery() {
+    if [[ -d /sys/class/power_supply/BAT0 ]]; then
+        local capacity=$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null)
+        local status=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
+        echo "Battery: $capacity% ($status)"
+    else
+        echo "No battery detected"
+    fi
+}
+
+# Show disk usage
+diskusage() {
+    echo "=== Disk Usage ==="
+    df -h | head -1
+    df -h | grep -E '^/dev/' | sort -k5 -r
+    echo ""
+    echo "=== Largest Directories ==="
+    du -sh * 2>/dev/null | sort -hr | head -10
+}
+
+# Show memory usage
+memory() {
+    echo "=== Memory Usage ==="
+    free -h
+    echo ""
+    echo "=== Top Memory Processes ==="
+    ps aux --sort=-%mem | head -10 | awk 'NR==1{print} NR>1{printf "%-8s %-8s %-8s %-8s %s\n", $1, $2, $4, $5, $11}'
+}
+
+# Show network information
+network() {
+    echo "=== Network Interfaces ==="
+    ip -brief addr show
+    echo ""
+    echo "=== Routing Table ==="
+    ip route show
+    echo ""
+    echo "=== DNS Configuration ==="
+    cat /etc/resolv.conf | grep nameserver
+    echo ""
+    echo "=== Open Ports ==="
+    ss -tlnp | head -20
+}
+
+# Show service status
+services() {
+    echo "=== Systemd Services ==="
+    systemctl list-units --type=service --state=running | head -20
+    echo ""
+    echo "=== Failed Services ==="
+    systemctl --failed
+}
+
+# System maintenance functions
+linux-cleanup() {
+    echo "Running Linux cleanup..."
+
+    # Clear package cache
+    if command -v apt >/dev/null 2>&1; then
+        sudo apt clean
+        sudo apt autoclean
+        sudo apt autoremove
+    elif command -v pacman >/dev/null 2>&1; then
+        sudo pacman -Sc
+    fi
+
+    # Clear user caches
+    rm -rf ~/.cache/*
+    rm -rf ~/.local/share/Trash/*
+
+    # Clear temporary files
+    sudo rm -rf /tmp/*
+    sudo rm -rf /var/tmp/*
+
+    # Clear log files (older than 7 days)
+    sudo find /var/log -name "*.log" -type f -mtime +7 -delete
+
+    # Clear journal logs (keep last 7 days)
+    sudo journalctl --vacuum-time=7d
+
+    echo "Cleanup completed!"
+}
+
+# Install common Linux development tools
+install-linux-tools() {
+    echo "Installing common Linux development tools..."
+
+    # Detect package manager
+    if command -v apt >/dev/null 2>&1; then
+        # Debian/Ubuntu
+        sudo apt update
+        sudo apt install -y \
+            git \
+            curl \
+            wget \
+            jq \
+            tree \
+            htop \
+            tmux \
+            neovim \
+            fzf \
+            ripgrep \
+            fd-find \
+            bat \
+            exa \
+            delta \
+            build-essential \
+            cmake \
+            python3-dev \
+            python3-pip \
+            golang \
+            nodejs \
+            npm \
+            docker.io \
+            docker-compose
+
+        # Install lazygit and lazydocker
+        if ! command -v lazygit >/dev/null 2>&1; then
+            LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+            curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+            tar xf lazygit.tar.gz lazygit
+            sudo install lazygit /usr/local/bin
+            rm lazygit.tar.gz lazygit
+        fi
+
+    elif command -v pacman >/dev/null 2>&1; then
+        # Arch Linux
+        sudo pacman -Syu --noconfirm \
+            git \
+            curl \
+            wget \
+            jq \
+            tree \
+            htop \
+            tmux \
+            neovim \
+            fzf \
+            ripgrep \
+            fd \
+            bat \
+            exa \
+            delta \
+            base-devel \
+            cmake \
+            python \
+            python-pip \
+            go \
+            nodejs \
+            npm \
+            docker \
+            docker-compose \
+            lazygit \
+            lazydocker
+    fi
+
+    # Install Rust if not installed
+    if ! command -v cargo >/dev/null 2>&1; then
+        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+        source $HOME/.cargo/env
+    fi
+
+    echo "Linux tools installed successfully!"
+}
+
+# Linux-specific PATH adjustments
+export PATH="$HOME/.local/bin:$PATH"
+export PATH="$HOME/bin:$PATH"
+
+# Set default editor for various tools
+export EDITOR="nvim"
+export VISUAL="nvim"
+export GIT_EDITOR="nvim"
+export SVN_EDITOR="nvim"
+
+# Linux-specific completion settings
+# Enable bash completion for Linux
+if [[ -f /usr/share/bash-completion/bash_completion ]]; then
+    . /usr/share/bash-completion/bash_completion
+fi
+
+# Set up Linux-specific key bindings
+# Alt + left/right arrow to move by word
+bindkey "^[[1;3C" forward-word
+bindkey "^[[1;3D" backward-word
+
+# Alt + delete to delete word
+bindkey "^[[3;3~" kill-word
+
+# Linux-specific environment variables
+export BROWSER="xdg-open"
+export TERMINAL="x-terminal-emulator"
+
+# Docker settings (if Docker is installed)
+if command -v docker >/dev/null 2>&1; then
+    export DOCKER_BUILDKIT=1
+    export COMPOSE_DOCKER_CLI_BUILD=1
+fi
+
+# Python settings
+export PYTHONSTARTUP="$HOME/.pythonrc.py"
+export PIP_USER=yes
+export PIP_CACHE_DIR="$HOME/.cache/pip"
+
+# Node.js settings
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+
+# Go settings
+export GOPATH="$HOME/go"
+export GOROOT="/usr/local/go"
+export PATH="$GOPATH/bin:$PATH"
+
+# Rust settings
+export PATH="$HOME/.cargo/bin:$PATH"
+
+{{ else -}}
+# This file is only for Linux systems
+echo "Linux-specific configuration loaded on non-Linux system"
+{{ end -}}

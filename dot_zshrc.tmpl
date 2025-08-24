@@ -1,0 +1,61 @@
+# Main ZSH Configuration Template
+# This file sources modular configuration files from ~/.zshrc.d/
+# Each configuration file is numbered for predictable loading order
+
+# Oh My Zsh configuration
+export ZSH="$HOME/.oh-my-zsh"
+
+# Set theme based on machine type
+{{ if .is_work -}}
+ZSH_THEME="agnoster"
+{{ else -}}
+ZSH_THEME="robbyrussell"
+{{ end -}}
+
+# Plugins - common across all machines
+plugins=(
+    git
+    docker
+    kubectl
+    terraform
+    aws
+    colored-man-pages
+    zsh-autosuggestions
+    zsh-syntax-highlighting
+)
+
+# Source Oh My Zsh
+source $ZSH/oh-my-zsh.sh
+
+# Load modular configurations from ~/.zshrc.d/
+# Files are loaded in alphabetical order (00-*, 10-*, etc.)
+if [[ -d "$HOME/.zshrc.d" ]]; then
+    for config in "$HOME/.zshrc.d"/*.zsh; do
+        # Only source readable files
+        [[ -r "$config" ]] && source "$config"
+    done
+fi
+
+# Load 1Password CLI completion if available
+{{ if lookPath "op" -}}
+eval "$(op completion zsh)"
+compdef _op op
+{{ end -}}
+
+# Final environment setup
+export EDITOR="nvim"
+export VISUAL="nvim"
+
+# Add local bin to PATH if it exists
+[[ -d "$HOME/.local/bin" ]] && export PATH="$HOME/.local/bin:$PATH"
+
+# Machine-specific final setup
+{{ if .is_macos -}}
+# macOS-specific final setup
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+{{ else if .is_linux -}}
+# Linux-specific final setup
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
+{{ end -}}

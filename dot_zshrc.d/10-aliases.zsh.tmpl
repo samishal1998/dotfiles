@@ -1,0 +1,180 @@
+# Aliases Configuration
+# This file contains common aliases and OS-specific aliases
+# Uses Chezmoi templating for cross-platform compatibility
+
+# Common aliases (work on both macOS and Linux)
+alias ll='ls -la'
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias ....='cd ../../..'
+
+# File operations
+alias cp='cp -i'                    # Confirm before overwriting
+alias mv='mv -i'                    # Confirm before overwriting
+alias rm='rm -i'                    # Confirm before deleting
+alias mkdir='mkdir -p'              # Create parent directories as needed
+
+# Text editors
+alias vim='nvim'
+alias vi='nvim'
+alias edit='nvim'
+
+# Git aliases
+alias g='git'
+alias gs='git status'
+alias ga='git add'
+alias gc='git commit'
+alias gp='git push'
+alias gl='git pull'
+alias gd='git diff'
+alias gco='git checkout'
+alias gb='git branch'
+alias gba='git branch -a'
+alias glog='git log --oneline --graph --decorate'
+
+# Docker aliases
+alias d='docker'
+alias dc='docker-compose'
+alias dcu='docker-compose up'
+alias dcd='docker-compose down'
+alias dcb='docker-compose build'
+alias dcl='docker-compose logs'
+
+# Kubernetes aliases
+alias k='kubectl'
+alias kg='kubectl get'
+alias kgp='kubectl get pods'
+alias kgs='kubectl get services'
+alias kgn='kubectl get nodes'
+alias kdp='kubectl describe pod'
+alias kds='kubectl describe service'
+alias kdn='kubectl describe node'
+
+# Tool aliases
+alias lg='lazygit'
+alias ld='lazydocker'
+alias y='yazi'
+alias rg='ripgrep'
+alias fd='fd'
+
+# Development aliases
+alias dev='cd ~/dev'
+alias dotfiles='cd ~/.local/share/chezmoi'
+
+# macOS-specific aliases
+{{ if eq .chezmoi.os "darwin" -}}
+# Homebrew
+alias brewup='brew update && brew upgrade'
+alias brewc='brew cleanup'
+alias brewdoc='brew doctor'
+
+# macOS system
+alias finder='open .'
+alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES && killall Finder'
+alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
+alias flushdns='sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder'
+
+# QuickLook from terminal
+alias ql='qlmanage -p "$@" >& /dev/null'
+
+# Copy to clipboard
+alias pbcopy='pbcopy'
+alias pbpaste='pbpaste'
+
+# Lock screen
+alias lock='/System/Library/CoreServices/Menu\ Extras/User.menu/Contents/Resources/CGSession -suspend'
+{{ end -}}
+
+# Linux-specific aliases
+{{ if eq .chezmoi.os "linux" -}}
+# Package management (Debian/Ubuntu)
+alias aptup='sudo apt update && sudo apt upgrade'
+alias aptin='sudo apt install'
+alias aptrm='sudo apt remove'
+alias aptsearch='apt search'
+alias aptshow='apt show'
+
+# System management
+alias s='sudo'
+alias systemctl='sudo systemctl'
+alias journalctl='sudo journalctl'
+alias service='sudo service'
+
+# File operations with better defaults
+alias ls='ls --color=auto'
+alias grep='grep --color=auto'
+alias fgrep='fgrep --color=auto'
+alias egrep='egrep --color=auto'
+
+# Open files with default application
+alias open='xdg-open'
+
+# Copy to clipboard (requires xclip or xsel)
+if command -v xclip >/dev/null 2>&1; then
+    alias pbcopy='xclip -selection clipboard'
+    alias pbpaste='xclip -selection clipboard -o'
+elif command -v xsel >/dev/null 2>&1; then
+    alias pbcopy='xsel --clipboard --input'
+    alias pbpaste='xsel --clipboard --output'
+fi
+{{ end -}}
+
+# Work-specific aliases (only if this is a work machine)
+{{ if .is_work -}}
+alias work='cd ~/work'
+alias prod='kubectl config use-context production'
+alias staging='kubectl config use-context staging'
+alias dev='kubectl config use-context development'
+{{ end -}}
+
+# Personal-specific aliases (only if this is a personal machine)
+{{ if .is_personal -}}
+alias personal='cd ~/personal'
+alias blog='cd ~/personal/blog'
+alias projects='cd ~/personal/projects'
+{{ end -}}
+
+# Function aliases (more complex operations)
+# Quick backup of current directory
+backup() {
+    tar -czf "$(basename "$PWD")-$(date +%Y%m%d-%H%M%S).tar.gz" .
+    echo "Backup created: $(basename "$PWD")-$(date +%Y%m%d-%H%M%S).tar.gz"
+}
+
+# Extract various archive formats
+extract() {
+    if [[ -f $1 ]]; then
+        case $1 in
+            *.tar.bz2) tar xjf $1 ;;
+            *.tar.gz)  tar xzf $1 ;;
+            *.bz2)     bunzip2 $1 ;;
+            *.rar)     unrar x $1 ;;
+            *.gz)      gunzip $1 ;;
+            *.tar)     tar xf $1 ;;
+            *.tbz2)    tar xjf $1 ;;
+            *.tgz)     tar xzf $1 ;;
+            *.zip)     unzip $1 ;;
+            *.Z)       uncompress $1 ;;
+            *.7z)      7z x $1 ;;
+            *)         echo "'$1' cannot be extracted via extract()" ;;
+        esac
+    else
+        echo "'$1' is not a valid file"
+    fi
+}
+
+# Create a new directory and cd into it
+mkcd() {
+    mkdir -p "$1" && cd "$1"
+}
+
+# Quick find and replace in current directory
+findreplace() {
+    if [[ $# -ne 2 ]]; then
+        echo "Usage: findreplace <find> <replace>"
+        return 1
+    fi
+    find . -type f -not -path '*/.git/*' -exec sed -i "s/$1/$2/g" {} \;
+}

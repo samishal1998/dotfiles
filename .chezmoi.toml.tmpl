@@ -1,0 +1,55 @@
+# Chezmoi Configuration Template
+# This file is processed when Chezmoi is first initialized
+# It prompts for user-specific information and sets up the environment
+
+{{- $email := promptStringOnce . "email" "Email address" -}}
+{{- $name := promptStringOnce . "name" "Full name" -}}
+{{- $github_username := promptStringOnce . "github_username" "GitHub username" -}}
+{{- $op_account := promptStringOnce . "op_account" "1Password account (subdomain)" -}}
+
+# User-specific data that varies between machines
+[data]
+    email = {{ $email | quote }}
+    name = {{ $name | quote }}
+    github_username = {{ $github_username | quote }}
+    op_account = {{ $op_account | quote }}
+
+    # Machine-specific settings
+    is_work = {{ promptBoolOnce . "is_work" "Is this a work machine" }}
+    is_personal = {{ not (promptBoolOnce . "is_work" "Is this a work machine") }}
+
+    # System detection
+    is_macos = {{ eq .chezmoi.os "darwin" }}
+    is_linux = {{ eq .chezmoi.os "linux" }}
+    is_debian = {{ eq .chezmoi.os "linux" }}
+
+    # Package manager availability
+    has_homebrew = {{ eq .chezmoi.os "darwin" }}
+    has_apt = {{ eq .chezmoi.os "linux" }}
+    has_pacman = false  # Can be extended for Arch
+
+# 1Password integration settings
+[onepassword]
+    prompt = true
+    mode = "account"
+
+# Editor configuration
+[edit]
+    command = "nvim"
+
+# Diff tool configuration
+[diff]
+    pager = "delta"
+
+# Git configuration
+[git]
+    autoCommit = true
+    autoPush = false
+
+# Template configuration
+[template]
+    options = ["missingkey=error"]
+
+# Script execution settings
+[scriptTempDir]
+    # Use system temp directory for scripts

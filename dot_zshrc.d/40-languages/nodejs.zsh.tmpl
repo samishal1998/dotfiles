@@ -1,0 +1,329 @@
+# Node.js Language Configuration
+# This file sets up Node.js development environment
+# Only loads if Node.js is installed on the system
+
+{{ if lookPath "node" -}}
+# Node.js environment variables
+export NODE_ENV="development"
+export NPM_CONFIG_PREFIX="$HOME/.npm-global"
+export NPM_CONFIG_CACHE="$HOME/.npm-cache"
+export NPM_CONFIG_TMP="$HOME/.npm-tmp"
+
+# Add npm global packages to PATH
+export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
+
+# Node.js Version Manager (nvm) settings
+export NVM_DIR="$HOME/.nvm"
+export NVM_LAZY_LOAD=true                    # Lazy load nvm for faster shell startup
+export NVM_COMPLETION=true                   # Enable nvm completion
+
+# Load nvm if available
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+# Node.js development directories
+export NODE_PROJECTS="$HOME/projects/node"
+export NODE_MODULES_BIN="$PWD/node_modules/.bin"
+
+# Add local node_modules/.bin to PATH when available
+if [[ -d "node_modules/.bin" ]]; then
+    export PATH="$NODE_MODULES_BIN:$PATH"
+fi
+
+# Node.js development aliases
+alias n='npm'
+alias ni='npm install'
+alias nid='npm install --save-dev'
+alias nig='npm install -g'
+alias nr='npm run'
+alias nrd='npm run dev'
+alias nrb='npm run build'
+alias nrt='npm run test'
+alias nrl='npm run lint'
+alias nrf='npm run format'
+alias ns='npm start'
+alias nci='npm ci'
+alias nup='npm update'
+alias nout='npm outdated'
+alias naudit='npm audit'
+alias nauditfix='npm audit fix'
+
+# Yarn aliases
+{{ if lookPath "yarn" -}}
+alias y='yarn'
+alias ya='yarn add'
+alias yad='yarn add --dev'
+alias yag='yarn global add'
+alias yr='yarn run'
+alias yrd='yarn run dev'
+alias yrb='yarn run build'
+alias yrt='yarn run test'
+alias ys='yarn start'
+alias yui='yarn upgrade-interactive'
+alias yw='yarn workspace'
+{{ end -}}
+
+# pnpm aliases
+{{ if lookPath "pnpm" -}}
+alias p='pnpm'
+alias pa='pnpm add'
+alias pad='pnpm add --save-dev'
+alias pag='pnpm add --global'
+alias pr='pnpm run'
+alias prd='pnpm run dev'
+alias prb='pnpm run build'
+alias prt='pnpm run test'
+alias ps='pnpm start'
+alias pi='pnpm install'
+alias pu='pnpm update'
+alias prm='pnpm remove'
+{{ end -}}
+
+# Bun aliases
+{{ if lookPath "bun" -}}
+alias b='bun'
+alias br='bun run'
+alias brd='bun run dev'
+alias brb='bun run build'
+alias brt='bun run test'
+alias bs='bun start'
+alias bi='bun install'
+alias ba='bun add'
+alias bad='bun add --dev'
+alias bu='bun update'
+alias bx='bunx'
+{{ end -}}
+
+# Node.js development functions
+
+# Create new Node.js project
+nodecreate() {
+    if [[ $# -eq 0 ]]; then
+        echo "Usage: nodecreate <project-name> [template]"
+        echo "Templates: basic, express, react, next, vue, svelte"
+        return 1
+    fi
+
+    local project_name="$1"
+    local template="${2:-basic}"
+    local project_path="$NODE_PROJECTS/$project_name"
+
+    if [[ -d "$project_path" ]]; then
+        echo "Project $project_name already exists at $project_path"
+        return 1
+    fi
+
+    mkdir -p "$project_path"
+    cd "$project_path"
+
+    # Initialize project based on template
+    case "$template" in
+        "express")
+            npx express-generator --no-view "$project_name"
+            cd "$project_name"
+            npm install
+            ;;
+        "react")
+            npx create-react-app "$project_name"
+            cd "$project_name"
+            ;;
+        "next")
+            npx create-next-app "$project_name"
+            cd "$project_name"
+            ;;
+        "vue")
+            npx vue create "$project_name"
+            cd "$project_name"
+            ;;
+        "svelte")
+            npx degit sveltejs/template "$project_name"
+            cd "$project_name"
+            npm install
+            ;;
+        *)
+            # Basic Node.js project
+            npm init -y
+            mkdir -p src test
+            cat > src/index.js << EOF
+console.log('Hello, $project_name!');
+EOF
+            ;;
+    esac
+
+    # Create basic directory structure if not already created
+    mkdir -p src test docs
+
+    # Create .gitignore
+    cat > .gitignore << EOF
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+dist/
+build/
+coverage/
+.nyc_output/
+.cache/
+EOF
+
+    # Create .editorconfig
+    cat > .editorconfig << EOF
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+indent_style = space
+indent_size = 2
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.md]
+trim_trailing_whitespace = false
+EOF
+
+    echo "Created Node.js project: $project_name at $project_path"
+    echo "Template: $template"
+    echo "Next steps:"
+    echo "  cd $project_path"
+    echo "  npm run dev  # or appropriate start command"
+}
+
+# Install common Node.js development tools
+install_node_tools() {
+    echo "Installing common Node.js development tools..."
+
+    # Global npm packages
+    npm install -g \
+        nodemon \
+        typescript \
+        ts-node \
+        eslint \
+        prettier \
+        jest \
+        mocha \
+        chai \
+        supertest \
+        pm2 \
+        serve \
+        http-server \
+        npx \
+        npm-check-updates
+
+    # Additional tools
+    {{ if lookPath "yarn" -}}
+    yarn global add \
+        @vue/cli \
+        create-react-app \
+        @angular/cli \
+        @nestjs/cli \
+        prisma
+    {{ end -}}
+
+    echo "Node.js tools installed successfully!"
+}
+
+# Show Node.js environment information
+nodeinfo() {
+    echo "=== Node.js Environment ==="
+    echo "Node Version: $(node --version)"
+    echo "NPM Version: $(npm --version)"
+    {{ if lookPath "yarn" -}}
+    echo "Yarn Version: $(yarn --version)"
+    {{ end -}}
+    {{ if lookPath "pnpm" -}}
+    echo "pnpm Version: $(pnpm --version)"
+    {{ end -}}
+    {{ if lookPath "bun" -}}
+    echo "Bun Version: $(bun --version)"
+    {{ end -}}
+    echo ""
+    echo "NVM_DIR: $NVM_DIR"
+    echo "NPM_CONFIG_PREFIX: $NPM_CONFIG_PREFIX"
+    echo ""
+    echo "=== Current Project ==="
+    if [[ -f "package.json" ]]; then
+        echo "Name: $(node -p "require('./package.json').name")"
+        echo "Version: $(node -p "require('./package.json').version")"
+        echo "Scripts:"
+        node -p "Object.keys(require('./package.json').scripts || {}).join(', ')"
+        echo ""
+        echo "Dependencies:"
+        npm list --depth=0 2>/dev/null | head -20
+    else
+        echo "No package.json found in current directory"
+    fi
+}
+
+# Clean Node.js project
+nodeclean() {
+    echo "Cleaning Node.js project..."
+    rm -rf node_modules/
+    rm -rf package-lock.json yarn.lock pnpm-lock.yaml bun.lockb
+    rm -rf dist/ build/ .next/ .nuxt/
+    rm -rf coverage/ .nyc_output/
+    rm -rf .cache/
+    echo "Project cleaned!"
+}
+
+# Update all Node.js dependencies
+nodeupdate() {
+    echo "Updating Node.js dependencies..."
+    if [[ -f "package.json" ]]; then
+        if [[ -f "yarn.lock" ]]; then
+            yarn upgrade
+        elif [[ -f "pnpm-lock.yaml" ]]; then
+            pnpm update
+        elif [[ -f "bun.lockb" ]]; then
+            bun update
+        else
+            npm update
+        fi
+    else
+        echo "No package.json found in current directory"
+    fi
+}
+
+# Run tests with coverage
+nodetestcov() {
+    if [[ -f "package.json" ]]; then
+        if npm run test:coverage >/dev/null 2>&1; then
+            npm run test:coverage
+        elif npm run coverage >/dev/null 2>&1; then
+            npm run coverage
+        else
+            echo "No test coverage script found. Add one to package.json:"
+            echo "  \"test:coverage\": \"jest --coverage\" or similar"
+        fi
+    else
+        echo "No package.json found in current directory"
+    fi
+}
+
+{{ else -}}
+# Node.js is not installed
+# Uncomment the following lines if you want to install Node.js automatically
+
+# Install Node.js using nvm
+# install_node() {
+#     echo "Installing Node.js via nvm..."
+#     curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+#     export NVM_DIR="$HOME/.nvm"
+#     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+#     nvm install --lts
+#     nvm use --lts
+#     echo "Node.js installed successfully!"
+# }
+
+# echo "Node.js is not installed. Run 'install_node' to install it."
+{{ end -}}
