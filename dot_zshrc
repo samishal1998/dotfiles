@@ -223,4 +223,4 @@ alias tm='task-master'
 alias taskmaster='task-master'
 
 # opencode
-export PATH=/Users/samimishal/.opencode/bin:$PATH
+export PATH=/Users/samimishal/.opencode/bin:~/.config/tmuxp:$PATH

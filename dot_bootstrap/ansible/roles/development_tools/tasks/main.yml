@@ -24,6 +24,15 @@
 
     # Install starship (cross-shell prompt)
     curl -sS https://starship.rs/install.sh | sh -s -- -y
+
+    # Install tmuxp (tmux session manager)
+    {{ 'brew install tmuxp' if ansible_os_family == 'Darwin' else 'pip3 install tmuxp' }}
+
+    # Install asdf (version manager)
+    {{ 'brew install asdf' if ansible_os_family == 'Darwin' else 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0' }}
+
+    # Install direnv (environment switcher)
+    {{ 'brew install direnv' if ansible_os_family == 'Darwin' else 'curl -sfL https://direnv.net/install.sh | bash' }}
   args:
     executable: /bin/bash
 
