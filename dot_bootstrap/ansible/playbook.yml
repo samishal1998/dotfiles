@@ -1,0 +1,15 @@
+---
+- name: Configure development environment
+  hosts: localhost
+  connection: local
+  gather_facts: true
+  vars:
+    is_macos: "{{ ansible_os_family == 'Darwin' }}"
+    is_linux: "{{ ansible_os_family == 'Debian' or ansible_os_family == 'RedHat' }}"
+
+  roles:
+    - common
+    - { role: macos, when: is_macos }
+    - { role: linux, when: is_linux }
+    - development_tools
+    - languages

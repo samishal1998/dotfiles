@@ -1,0 +1,70 @@
+---
+- name: Install 1Password CLI
+  shell: |
+    {{ 'brew install --cask 1password-cli' if ansible_os_family == 'Darwin' else 'curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main" | sudo tee /etc/apt/sources.list.d/1password.list && sudo apt update && sudo apt install -y 1password-cli' }}
+  args:
+    executable: /bin/bash
+
+- name: Install GitHub CLI
+  shell: |
+    {{ 'brew install gh' if ansible_os_family == 'Darwin' else 'curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh' }}
+  args:
+    executable: /bin/bash
+
+- name: Install additional development tools
+  shell: |
+    # Install delta for better git diffs
+    {{ 'brew install git-delta' if ansible_os_family == 'Darwin' else 'wget -O delta.deb https://github.com/dandavison/delta/releases/download/0.16.5/git-delta_0.16.5_amd64.deb && sudo dpkg -i delta.deb && rm delta.deb' }}
+
+    # Install eza (modern ls replacement)
+    {{ 'brew install eza' if ansible_os_family == 'Darwin' else 'wget -O eza.deb https://github.com/eza-community/eza/releases/download/v0.16.0/eza_0.16.0-1_amd64.deb && sudo dpkg -i eza.deb && rm eza.deb' }}
+
+    # Install zoxide (smarter cd)
+    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
+
+    # Install starship (cross-shell prompt)
+    curl -sS https://starship.rs/install.sh | sh -s -- -y
+  args:
+    executable: /bin/bash
+
+- name: Configure GitHub CLI
+  shell: |
+    gh auth login --with-token < /dev/null || true
+    gh config set git_protocol https
+    gh config set editor nvim
+  ignore_errors: yes
+
+- name: Set up SSH configuration
+  file:
+    path: ~/.ssh
+    state: directory
+    mode: '0700'
+
+- name: Create SSH config
+  template:
+    src: ssh_config.j2
+    dest: ~/.ssh/config
+    mode: '0600'
+
+- name: Set up GPG
+  shell: |
+    gpg --list-keys || gpg --generate-key --batch <<EOF
+    %no-protection
+    Key-Type: RSA
+    Key-Length: 4096
+    Name-Real: {{ git_user_name }}
+    Name-Email: {{ git_user_email }}
+    Expire-Date: 0
+    %commit
+    EOF
+  ignore_errors: yes
+
+- name: Configure Git with GPG
+  git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop:
+    - { name: "commit.gpgsign", value: "true" }
+    - { name: "gpg.program", value: "gpg" }
+  when: gpg_key_id is defined

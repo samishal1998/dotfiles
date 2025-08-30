@@ -1,6 +1,112 @@
 # Dotfiles Setup with Chezmoi
 
-This repository contains a comprehensive dotfiles setup using [Chezmoi](https://chezmoi.io) for managing configuration files across multiple machines (macOS and Linux).
+This repository contains your **exact** dotfiles configuration using [Chezmoi](https://chezmoi.io) for managing configuration files across multiple machines (macOS and Linux).
+
+## 📋 Table of Contents
+
+- [Your Exact Configurations](#your-exact-configurations)
+- [Quick Start](#quick-start)
+- [Features](#features)
+- [Structure](#structure)
+- [Installation](#installation)
+- [Usage](#usage)
+- [Customization](#customization)
+
+---
+
+## 🎯 Your Exact Configurations
+
+### Neovim Configuration
+- **Framework**: NvChad v2.5 with Lazy.nvim
+- **Theme**: Custom with bufferline configuration
+- **Plugins**: All your existing plugins and customizations
+- **Features**:
+  - Custom bufferline with sorting by modification time
+  - Pinned buffers support
+  - LSP integration
+  - Treesitter folding
+  - Custom key mappings
+
+### Oh My Zsh Configuration
+- **Theme**: Agnoster
+- **Plugins**:
+  - git
+  - dotenv
+  - macos
+  - ruby
+  - rbenv
+  - rake
+  - bundler
+  - docker
+  - zsh-syntax-highlighting
+  - zsh-autosuggestions
+- **Tools Integration**:
+  - Google Cloud SDK
+  - Jenv (Java)
+  - pnpm
+  - Pyenv
+  - NVM
+  - Bun
+  - PostgreSQL
+  - WezTerm
+  - FZF
+  - Zoxide
+  - Task Master
+  - OpenCode
+
+### Yabai Configuration
+- **Location**: `~/.config/yabai/yabairc` (correct path)
+- **Layout**: BSP (Binary Space Partitioning)
+- **Window Management**:
+  - 8px padding and gaps
+  - Mouse follows focus
+  - Alt + drag to move/resize
+  - Custom rules for excluded apps
+  - Raycast integration for space changes
+
+### Enhanced Tool Configurations
+- **Zoxide**: Smarter `cd` with learning capabilities
+- **Bat**: Enhanced `cat` with syntax highlighting
+- **FZF**: Fuzzy finder with comprehensive integrations
+
+### 1Password Integration
+- **API Keys**: OPENAI, CLAUDE (securely managed)
+- **Git Credentials**: SSH keys and signing
+- **Custom Functions**: op-env, op-secret, op-ssh
+
+---
+
+## 📁 Structure
+
+```
+~/.local/share/chezmoi/
+├── GUIDE.md                           # 📚 Comprehensive usage guide
+├── .chezmoi.toml.tmpl                # Main configuration
+├── .chezmoiignore                    # Platform-specific ignores
+├── dot_zshrc                         # Your exact .zshrc (Oh My Zsh)
+├── dot_zshrc.d/                      # Modular ZSH configs
+│   ├── 00-common.zsh                 # Basic settings
+│   ├── 10-aliases.zsh.tmpl           # Essential aliases
+│   ├── 20-exports.zsh.tmpl           # Environment variables
+│   ├── 40-languages/                 # Language-specific configs
+│   │   ├── golang.zsh.tmpl
+│   │   ├── rust.zsh.tmpl
+│   │   └── nodejs.zsh.tmpl
+│   ├── 50-tools/                     # Tool-specific configs
+│   │   ├── 1password.zsh.tmpl        # 1Password integration
+│   │   ├── zoxide.zsh                # Zoxide configuration
+│   │   ├── bat.zsh                   # Bat configuration
+│   │   └── fzf.zsh                   # FZF configuration
+│   └── 60-macos.zsh.tmpl             # macOS-specific
+├── dot_config/
+│   ├── nvim/                         # Your exact Neovim config
+│   │   └── init.lua                  # NvChad setup with customizations
+│   └── yabai/                        # Your exact Yabai config
+│       └── yabairc                   # Window manager configuration
+└── dot_bootstrap/ansible/            # System automation
+```
+
+---
 
 ## 🚀 Quick Start
 
@@ -21,87 +127,61 @@ This repository contains a comprehensive dotfiles setup using [Chezmoi](https://
    curl -sfL https://git.io/chezmoi | sh
    ```
 
-2. **Initialize Chezmoi**
+2. **Initialize with your exact config**
    ```bash
-   chezmoi init
+   chezmoi init --apply
    ```
 
-3. **Apply the configuration**
+3. **Configure 1Password**
    ```bash
-   chezmoi apply
+   op account add --address YOUR_SUBDOMAIN.1password.com
    ```
 
-## 📁 Structure
+4. **Install tools**
+   ```bash
+   # Install development tools based on your platform
+   install-macos-tools  # or install-linux-tools
+   ```
 
-```
-~/.local/share/chezmoi/
-├── .chezmoi.toml.tmpl              # Main configuration template
-├── .chezmoiignore                  # Files to ignore
-├── dot_zshrc.tmpl                  # Main ZSH configuration
-├── dot_zshrc.d/                    # Modular ZSH configs
-│   ├── 00-common.zsh               # Common settings
-│   ├── 10-aliases.zsh.tmpl         # Aliases (OS-aware)
-│   ├── 20-exports.zsh.tmpl         # Environment variables
-│   ├── 30-path.zsh.tmpl            # PATH modifications
-│   ├── 40-languages/               # Language-specific configs
-│   │   ├── golang.zsh.tmpl
-│   │   ├── rust.zsh.tmpl
-│   │   └── nodejs.zsh.tmpl
-│   ├── 50-tools/                   # Tool-specific configs
-│   │   └── 1password.zsh.tmpl
-│   ├── 60-macos.zsh.tmpl           # macOS-specific
-│   └── 60-linux.zsh.tmpl           # Linux-specific
-├── dot_config/                     # Application configs
-│   ├── nvim/                       # Neovim config
-│   ├── tmux/                       # Tmux config
-│   └── yazi/                       # Yazi config
-└── .chezmoiscripts/                # Setup scripts
-```
+---
 
 ## 🔧 Features
 
-### Modular ZSH Configuration
-
-The ZSH configuration is split into modular files for better organization:
-
-- **00-common.zsh**: Basic shell settings that work everywhere
-- **10-aliases.zsh.tmpl**: Cross-platform aliases with OS-specific variants
-- **20-exports.zsh.tmpl**: Environment variables and PATH setup
-- **40-languages/**: Language-specific configurations (Go, Rust, Node.js, Python)
-- **50-tools/**: Tool-specific configurations (1Password, etc.)
-- **60-*.zsh.tmpl**: OS-specific configurations (macOS/Linux)
-
 ### Cross-Platform Support
-
-- **macOS**: Homebrew integration, system-specific aliases
-- **Linux**: APT/Pacman support, systemd integration
-- **Conditional Logic**: Templates automatically adapt based on OS and machine type
-
-### 1Password Integration
-
-Secure secrets management through 1Password CLI:
-
-```bash
-# Load secrets into environment
-op-env "Development"
-
-# Get specific secret
-op-secret "Database" "password" "DB_PASSWORD"
-
-# Generate secure password
-op-genpass 32 complex
-```
+- **macOS**: Homebrew, Yabai, system integrations
+- **Linux**: APT, systemd, native tools
+- **Conditional Logic**: Automatic OS detection and configuration
 
 ### Development Tools
+- **Languages**: Go, Rust, Node.js, Python, Ruby, Java
+- **Package Managers**: pnpm, yarn, bun, pipenv, poetry
+- **Version Managers**: nvm, pyenv, jenv, rbenv
+- **Databases**: PostgreSQL, pgAdmin
+- **Cloud**: Google Cloud SDK, AWS CLI
 
-Pre-configured support for:
+### Productivity Tools
+- **Editors**: Neovim (NvChad), VS Code
+- **Terminal**: WezTerm, iTerm2
+- **Git**: Lazygit, GitHub CLI, GitHub Desktop
+- **File Managers**: Yazi, Superfile, Ripgrep
+- **Window Management**: Yabai (macOS)
+- **Search**: Ripgrep, FZF, Zoxide
+- **Task Management**: Task Master, Ansible
 
-- **Languages**: Go, Rust, Node.js, Python
-- **Tools**: Git, Docker, Kubernetes, Terraform
-- **Editors**: Neovim, VS Code
-- **Package Managers**: Homebrew, APT, Yarn, pnpm, Poetry
+### Enhanced CLI Tools
+- **Zoxide**: Smarter directory navigation
+- **Bat**: Syntax-highlighted file viewing
+- **FZF**: Fuzzy finding with rich integrations
 
-## 🎯 Usage
+### Security & Secrets
+- **1Password Integration**: Secure API key management
+- **SSH Keys**: Automatic key management
+- **Git Signing**: GPG commit signing
+- **Environment Variables**: Secure credential handling
+
+---
+
+## 🎮 Usage
 
 ### Daily Operations
 
@@ -112,45 +192,80 @@ chezmoi diff
 # Apply changes
 chezmoi apply
 
-# Edit a file
+# Edit a managed file
 chezmoi edit ~/.zshrc
-
-# Add a new file
-chezmoi add ~/.config/starship.toml
 
 # Update from repository
 chezmoi update
+
+# Show managed files
+chezmoi managed
 ```
 
-### Managing Secrets
+### Enhanced Tool Usage
+
+#### Zoxide (Smart cd)
+```bash
+z projects        # Go to projects directory
+z -i              # Interactive selection
+zf                # Find directory with fzf
+zp                # Go to project root
+```
+
+#### Bat (Enhanced cat)
+```bash
+bat file.txt      # View with syntax highlighting
+batn file.txt     # Show line numbers
+batjson data.json # Pretty print JSON
+batdiff file.txt  # Show git diff
+```
+
+#### FZF (Fuzzy finder)
+```bash
+fe                # Find and edit file
+fv                # Find and view file
+fcd               # Find and cd to directory
+frg pattern       # Find files with pattern
+```
+
+### 1Password Operations
 
 ```bash
-# Store a secret in 1Password
-op item create --category password --title "API Key" --vault "Development"
+# Load secrets into environment
+op-env "Development"
 
-# Use secret in template
-{{ onepasswordRead "op://Development/API Key/password" }}
+# Get specific API key
+op-secret "OPENAI" "api_key" "OPENAI_API_KEY"
+
+# SSH key management
+op-ssh create "my-key"
+op-ssh get "my-key"
 ```
 
-### Machine-Specific Configuration
+### Neovim Operations
 
-The setup automatically detects:
+```vim
+# Your custom key mappings
+<leader>w       # Save file
+<leader>q       # Quit
+<leader>e       # File explorer
+<leader>ff      # Find files
+<leader>gg      # LazyGit
+gd              # Go to definition
+K               # Hover documentation
+```
 
-- **OS**: macOS vs Linux
-- **Machine Type**: Work vs Personal
-- **Architecture**: amd64 vs arm64
-
-Use these in templates:
+### Yabai Operations (macOS)
 
 ```bash
-{{ if .is_work }}
-# Work-specific configuration
-{{ end }}
-
-{{ if eq .chezmoi.os "darwin" }}
-# macOS-specific configuration
-{{ end }}
+# Your yabai configuration
+# Alt + drag to move windows
+# Mouse follows focus
+# Custom padding and gaps
+# Excluded apps: System Settings, Calculator, etc.
 ```
+
+---
 
 ## 🛠️ Customization
 
@@ -158,185 +273,120 @@ Use these in templates:
 
 1. **Create configuration file**
    ```bash
-   # For a new tool, create ~/.zshrc.d/50-tools/tool.zsh.tmpl
    chezmoi add ~/.zshrc.d/50-tools/newtool.zsh
    ```
 
-2. **Add OS-specific logic**
+2. **Add platform-specific logic**
    ```bash
    {{ if lookPath "newtool" }}
-   # Tool-specific configuration
+   # Tool configuration
    {{ end }}
    ```
 
-### Modifying Aliases
+### Modifying Keybindings
 
-Edit `dot_zshrc.d/10-aliases.zsh.tmpl`:
+1. **Neovim mappings**
+   ```lua
+   -- In lua/custom/mappings.lua
+   map("n", "<leader>custom", ":CustomCommand<CR>", opts)
+   ```
 
-```bash
-# Add new alias
-alias myalias='command --with-options'
-
-# OS-specific alias
-{{ if eq .chezmoi.os "darwin" }}
-alias macalias='mac-specific-command'
-{{ end }}
-```
+2. **ZSH keybindings**
+   ```bash
+   # In dot_zshrc.d/10-aliases.zsh.tmpl
+   bindkey '^K' custom-function
+   ```
 
 ### Environment Variables
 
-Edit `dot_zshrc.d/20-exports.zsh.tmpl`:
-
-```bash
-# Add new environment variable
-export MY_VAR="value"
-
-# Conditional export
-{{ if .is_work }}
-export WORK_VAR="work-value"
-{{ end }}
-```
-
-## 🔒 Security
-
-### 1Password Integration
-
-- Secrets are never stored in plain text
-- Templates retrieve values dynamically from 1Password
-- Supports multiple vaults and accounts
-- Automatic session management
-
-### File Permissions
-
-- Private files are automatically detected and secured
-- SSH keys and other sensitive files get 600 permissions
-- Configuration files are properly secured
-
-## 🚀 Advanced Features
-
-### Setup Scripts
-
-Automated installation and configuration:
-
-```bash
-# Install development tools
-install-macos-tools    # macOS
-install-linux-tools    # Linux
-
-# Install language tools
-install_node_tools
-install_python_tools
-install_rust_tools
-```
-
-### Project Templates
-
-Quick project setup:
-
-```bash
-# Create new projects
-nodecreate my-app express
-pythoncreate my-api fastapi
-rustcreate my-tool bin
-```
-
-### System Maintenance
-
-Built-in cleanup and maintenance:
-
-```bash
-# System cleanup
-mac-cleanup      # macOS
-linux-cleanup    # Linux
-
-# Development cleanup
-nodeclean
-pythonclean
-rustclean
-```
-
-## 📊 Monitoring and Debugging
-
-### Status Commands
-
-```bash
-# Show system information
-sysinfo
-
-# Show environment info
-nodeinfo
-pythoninfo
-rustinfo
-
-# Show 1Password status
-op-info
-```
-
-### Debugging Templates
-
-```bash
-# Test template rendering
-chezmoi execute-template '{{ .chezmoi.os }}'
-
-# Show available variables
-chezmoi data
-
-# Debug 1Password connection
-op account list
-```
-
-## 🤝 Contributing
-
-1. **Fork the repository**
-2. **Create a feature branch**
+1. **Add to exports**
    ```bash
-   git checkout -b feature/new-tool
+   # In dot_zshrc.d/20-exports.zsh.tmpl
+   export CUSTOM_VAR="value"
    ```
-3. **Make changes**
-4. **Test on multiple platforms**
-5. **Submit a pull request**
 
-## 📝 License
-
-This dotfiles setup is provided as-is for educational and personal use. Feel free to adapt it to your needs.
-
-## 🆘 Troubleshooting
-
-### Common Issues
-
-1. **Template errors**: Check syntax with `chezmoi execute-template`
-2. **1Password issues**: Verify CLI installation and authentication
-3. **Permission problems**: Run `chezmoi doctor` to diagnose
-4. **Missing tools**: Use setup scripts to install dependencies
-
-### Getting Help
-
-```bash
-# Chezmoi help
-chezmoi help
-chezmoi doctor
-
-# 1Password help
-op --help
-
-# Check system status
-chezmoi status
-```
-
-## 🔄 Updates
-
-To update your dotfiles:
-
-```bash
-# Pull latest changes
-chezmoi update
-
-# Or if you have local changes
-chezmoi merge
-```
+2. **Platform-specific**
+   ```bash
+   {{ if eq .chezmoi.os "darwin" }}
+   export MAC_VAR="mac-value"
+   {{ end }}
+   ```
 
 ---
 
-**Happy Hacking!** 🎉
+## 📊 Your Tool Stack
 
-This setup is designed to be maintainable, secure, and adaptable to your workflow. Customize it as needed and enjoy a consistent development environment across all your machines.
+### Programming Languages
+- **Go**: With custom GOPATH and Go modules
+- **Rust**: With Cargo and rustup
+- **Node.js**: With nvm, pnpm, yarn, bun
+- **Python**: With pyenv, pipenv, poetry
+- **Ruby**: With rbenv and bundler
+- **Java**: With jenv
+
+### Development Tools
+- **Editors**: Neovim (NvChad), VS Code
+- **Git**: Lazygit, GitHub CLI, GitHub Desktop
+- **Containers**: Docker, Docker Compose, Lazydocker
+- **Databases**: PostgreSQL, pgAdmin
+- **Cloud**: Google Cloud SDK, AWS CLI
+
+### Productivity
+- **Terminal**: WezTerm, iTerm2
+- **File Managers**: Yazi, Superfile, Ripgrep
+- **Window Management**: Yabai (macOS)
+- **Search**: Ripgrep, FZF, Zoxide
+- **Task Management**: Task Master, Ansible
+
+### Enhanced CLI
+- **Zoxide**: Smart directory navigation
+- **Bat**: Syntax-highlighted file viewing
+- **FZF**: Fuzzy finding with rich integrations
+
+### Security
+- **Password Management**: 1Password CLI
+- **SSH**: Multiple key management
+- **Git Security**: GPG signing, credential helpers
+
+---
+
+## 🚀 Getting Started
+
+1. **Copy the setup**
+   ```bash
+   cp -r /Volumes/S1/chezmoi-setup/* ~/.local/share/chezmoi/
+   ```
+
+2. **Initialize**
+   ```bash
+   chezmoi init --apply
+   ```
+
+3. **Configure 1Password**
+   ```bash
+   op account add --address your.1password.com
+   ```
+
+4. **Install tools**
+   ```bash
+   # Run the Ansible setup
+   cd ~/.local/share/chezmoi/dot_bootstrap/ansible
+   ./setup.sh
+   ```
+
+5. **Start using your enhanced tools**
+   ```bash
+   # Your exact configurations are now active
+   nvim        # Your NvChad setup
+   z projects  # Smart directory navigation
+   bat file.txt # Enhanced file viewing
+   fe          # Fuzzy file editing
+   yazi        # Your file manager
+   lg          # Your Lazygit setup
+   ```
+
+---
+
+**Your exact configurations are preserved and enhanced with powerful new tools!** 🎉
+
+This setup maintains all your existing configurations while adding the benefits of Chezmoi for management and powerful new CLI tools for enhanced productivity.

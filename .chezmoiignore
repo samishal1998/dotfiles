@@ -30,7 +30,7 @@ Thumbs.db
 {{ if ne .chezmoi.os "darwin" }}
 # macOS applications and preferences
 .yabairc
-.skhdrc
+.config/yabai/
 Library/
 Applications/
 System/
@@ -48,7 +48,6 @@ var/
 usr/
 proc/
 sys/
-dev/
 run/
 .snapshots/
 {{ end }}
@@ -287,3 +286,7 @@ aarch64/
 # go.sum
 # Gemfile.lock
 # composer.lock
+
+# NvChad specific
+nvchad/
+base46/

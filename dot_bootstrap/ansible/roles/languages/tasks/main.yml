@@ -1,0 +1,91 @@
+---
+- name: Install Go
+  shell: |
+    {{ 'brew install go' if ansible_os_family == 'Darwin' else 'wget -O go.tar.gz https://golang.org/dl/go1.21.5.linux-amd64.tar.gz && sudo tar -C /usr/local -xzf go.tar.gz && rm go.tar.gz' }}
+  args:
+    executable: /bin/bash
+
+- name: Install Rust
+  shell: |
+    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+    source ~/.cargo/env
+    rustup component add rustfmt
+    rustup component add clippy
+  args:
+    executable: /bin/bash
+
+- name: Install Node.js (using nvm)
+  shell: |
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+    export NVM_DIR="$HOME/.nvm"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    nvm install --lts
+    nvm use --lts
+    npm install -g yarn pnpm bun
+  args:
+    executable: /bin/bash
+
+- name: Install Python tools
+  shell: |
+    # Install pyenv
+    curl https://pyenv.run | bash
+
+    # Install latest Python
+    export PATH="$HOME/.pyenv/bin:$PATH"
+    pyenv install 3.11.6
+    pyenv global 3.11.6
+
+    # Install pip packages
+    pip install --user pipenv poetry black flake8 mypy pytest
+
+    # Install pre-commit
+    pip install --user pre-commit
+  args:
+    executable: /bin/bash
+
+- name: Set up Go workspace
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - ~/go
+    - ~/go/bin
+    - ~/go/pkg
+    - ~/go/src
+
+- name: Set up Rust workspace
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - ~/projects/rust
+
+- name: Set up Node.js workspace
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - ~/projects/node
+
+- name: Set up Python workspace
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - ~/projects/python
+    - ~/.virtualenvs
+
+- name: Configure language-specific settings
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: '0644'
+  loop:
+    - { src: "go_env.j2", dest: "~/.go_env" }
+    - { src: "rust_env.j2", dest: "~/.rust_env" }
+    - { src: "node_env.j2", dest: "~/.node_env" }
+    - { src: "python_env.j2", dest: "~/.python_env" }

@@ -1,0 +1,38 @@
+---
+- name: Create essential directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - ~/.local/bin
+    - ~/.config
+    - ~/projects
+    - ~/projects/go
+    - ~/projects/rust
+    - ~/projects/node
+    - ~/projects/python
+
+- name: Set up git configuration
+  git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop:
+    - { name: "user.name", value: "{{ git_user_name }}" }
+    - { name: "user.email", value: "{{ git_user_email }}" }
+    - { name: "core.editor", value: "nvim" }
+    - { name: "init.defaultBranch", value: "main" }
+    - { name: "pull.rebase", value: "true" }
+
+- name: Install common packages
+  package:
+    name: "{{ common_packages }}"
+    state: present
+  when: ansible_os_family != 'Darwin'
+
+- name: Install common packages (macOS)
+  homebrew:
+    name: "{{ common_packages }}"
+    state: present
+  when: ansible_os_family == 'Darwin'

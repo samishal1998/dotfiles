@@ -1,0 +1,78 @@
+---
+- name: Install Homebrew
+  shell: |
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+  args:
+    creates: /opt/homebrew/bin/brew
+  when: not ansible_env.HOME | regex_search('/opt/homebrew/bin/brew')
+
+- name: Install macOS development tools
+  homebrew:
+    name:
+      - visual-studio-code
+      - google-chrome
+      - firefox
+      - iterm2
+      - docker
+      - slack
+      - discord
+      - spotify
+      - 1password
+      - 1password-cli
+      - raycast
+      - rectangle
+    state: present
+
+- name: Install CLI tools
+  homebrew:
+    name:
+      - yazi
+      - superfile
+      - ripgrep
+      - fd
+      - bat
+      - eza
+      - delta
+      - lazygit
+      - lazydocker
+      - git-delta
+      - gh
+      - hub
+    state: present
+
+- name: Install fonts
+  homebrew:
+    name:
+      - font-hack-nerd-font
+      - font-fira-code-nerd-font
+      - font-jetbrains-mono-nerd-font
+    state: present
+
+- name: Set up macOS defaults
+  osx_defaults:
+    domain: "{{ item.domain }}"
+    key: "{{ item.key }}"
+    value: "{{ item.value }}"
+  loop:
+    - { domain: "com.apple.finder", key: "AppleShowAllFiles", value: "true" }
+    - { domain: "com.apple.dock", key: "autohide", value: "true" }
+    - { domain: "com.apple.dock", key: "tilesize", value: "48" }
+    - { domain: "NSGlobalDomain", key: "KeyRepeat", value: "2" }
+    - { domain: "NSGlobalDomain", key: "InitialKeyRepeat", value: "15" }
+
+- name: Install Oh My Zsh
+  shell: |
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  args:
+    creates: ~/.oh-my-zsh
+
+- name: Install Zsh plugins
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    clone: yes
+    update: yes
+  loop:
+    - { repo: "https://github.com/zsh-users/zsh-autosuggestions", dest: "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" }
+    - { repo: "https://github.com/zsh-users/zsh-syntax-highlighting", dest: "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" }
+    - { repo: "https://github.com/zsh-users/zsh-completions", dest: "~/.oh-my-zsh/custom/plugins/zsh-completions" }

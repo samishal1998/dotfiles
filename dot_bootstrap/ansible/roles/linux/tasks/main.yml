@@ -1,0 +1,117 @@
+---
+- name: Update package cache
+  apt:
+    update_cache: yes
+    cache_valid_time: 3600
+  when: ansible_os_family == 'Debian'
+
+- name: Install essential packages
+  package:
+    name:
+      - build-essential
+      - cmake
+      - pkg-config
+      - libssl-dev
+      - libffi-dev
+      - python3-dev
+      - python3-pip
+      - nodejs
+      - npm
+      - golang
+      - rustc
+      - cargo
+      - docker.io
+      - docker-compose
+      - git
+      - curl
+      - wget
+      - jq
+      - tree
+      - htop
+      - tmux
+      - neovim
+      - fzf
+      - ripgrep
+      - bat
+      - fd-find
+      - delta
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: Install development tools from source (when not available in packages)
+  shell: |
+    # Install lazygit
+    if ! command -v lazygit >/dev/null 2>&1; then
+      LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
+      curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
+      tar xf lazygit.tar.gz lazygit
+      sudo install lazygit /usr/local/bin
+      rm lazygit.tar.gz lazygit
+    fi
+
+    # Install lazydocker
+    if ! command -v lazydocker >/dev/null 2>&1; then
+      curl https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash
+    fi
+
+    # Install yazi
+    if ! command -v yazi >/dev/null 2>&1; then
+      cargo install --locked yazi-fm
+    fi
+
+    # Install superfile
+    if ! command -v superfile >/dev/null 2>&1; then
+      go install github.com/MHNightCat/superfile@latest
+    fi
+  args:
+    executable: /bin/bash
+
+- name: Install Oh My Zsh
+  shell: |
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  args:
+    creates: ~/.oh-my-zsh
+
+- name: Install Zsh plugins
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    clone: yes
+    update: yes
+  loop:
+    - { repo: "https://github.com/zsh-users/zsh-autosuggestions", dest: "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" }
+    - { repo: "https://github.com/zsh-users/zsh-syntax-highlighting", dest: "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" }
+    - { repo: "https://github.com/zsh-users/zsh-completions", dest: "~/.oh-my-zsh/custom/plugins/zsh-completions" }
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user_id }}"
+    groups: docker
+    append: yes
+  when: "'docker' in group_names"
+
+- name: Start and enable Docker service
+  systemd:
+    name: docker
+    state: started
+    enabled: yes
+  when: "'docker' in group_names"
+
+- name: Install Node.js package managers
+  npm:
+    name: "{{ item }}"
+    global: yes
+    state: present
+  loop:
+    - yarn
+    - pnpm
+    - bun
+
+- name: Install Python package managers
+  pip:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - poetry
+    - pipenv
+  when: ansible_python.version.major == 3
