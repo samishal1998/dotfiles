@@ -312,95 +312,98 @@ superfile-info() {
     fi
 }
 
-# Superfile with custom config
-sfc() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: sfc <config-file>"
-        return 1
-    fi
-    local config_file="$1"
-    if [[ -f "$config_file" ]]; then
-        SUPERFILE_CONFIG_FILE="$config_file" superfile
-    else
-        echo "Config file not found: $config_file"
-    fi
-}
+# Extra superfile functions (enabled with EXTRA_ALIASES=true)
+if [[ "$EXTRA_ALIASES" == "true" ]]; then
+    # Superfile with custom config
+    sfc() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: sfc <config-file>"
+            return 1
+        fi
+        local config_file="$1"
+        if [[ -f "$config_file" ]]; then
+            SUPERFILE_CONFIG_FILE="$config_file" superfile
+        else
+            echo "Config file not found: $config_file"
+        fi
+    }
 
-# Superfile with debug mode
-sfd() {
-    SUPERFILE_DEBUG=true superfile
-}
+    # Superfile with debug mode
+    sfd() {
+        SUPERFILE_DEBUG=true superfile
+    }
 
-# Superfile integration with other tools
+    # Open superfile after file operations
+    sf-edit() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: sf-edit <file>"
+            return 1
+        fi
+        local file="$1"
+        superfile --select "$file" --editor
+    }
 
-# Open superfile after file operations
-sf-edit() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: sf-edit <file>"
-        return 1
-    fi
-    local file="$1"
-    superfile --select "$file" --editor
-}
+    # Superfile with fzf integration
+    sffzf() {
+        local file
+        file=$(find . -type f | fzf)
+        if [[ -n "$file" ]]; then
+            superfile --select "$file"
+        fi
+    }
 
-# Superfile with fzf integration
-sffzf() {
-    local file
-    file=$(find . -type f | fzf)
-    if [[ -n "$file" ]]; then
-        superfile --select "$file"
-    fi
-}
+    # Superfile with ripgrep integration
+    sfrg() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: sfrg <pattern>"
+            return 1
+        fi
+        local pattern="$1"
+        local files=$(rg -l "$pattern" . 2>/dev/null)
+        if [[ -n "$files" ]]; then
+            echo "$files" | head -1 | xargs superfile --select
+        else
+            echo "No files found containing: $pattern"
+        fi
+    }
 
-# Superfile with ripgrep integration
-sfrg() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: sfrg <pattern>"
-        return 1
-    fi
-    local pattern="$1"
-    local files=$(rg -l "$pattern" . 2>/dev/null)
-    if [[ -n "$files" ]]; then
-        echo "$files" | head -1 | xargs superfile --select
-    else
-        echo "No files found containing: $pattern"
-    fi
-}
+    # Superfile with specific file operations
+    sffind() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: sffind <pattern>"
+            return 1
+        fi
+        local pattern="$1"
+        local files=$(find . -name "*$pattern*" -type f | head -20)
+        if [[ -n "$files" ]]; then
+            echo "$files" | head -1 | xargs superfile --select
+        else
+            echo "No files found matching: $pattern"
+        fi
+    }
+
+    # Superfile with git integration
+    sfgit() {
+        # Open superfile in git root with git files only
+        local git_root
+        if git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
+            (cd "$git_root" && superfile --filter "*.git*")
+        else
+            echo "Not in a git repository"
+            return 1
+        fi
+    }
+
+    # Extra superfile directory shortcuts
+    sfdownloads='superfile ~/Downloads'
+    sfdocuments='superfile ~/Documents'
+    sfdesktop='superfile ~/Desktop'
+fi
 
 # Quick access to common directories with Superfile
 sfhome='superfile ~'
 sfconfig='superfile ~/.config'
 sfdotfiles='superfile ~/.local/share/chezmoi'
-sfdownloads='superfile ~/Downloads'
-sfdocuments='superfile ~/Documents'
-sfdesktop='superfile ~/Desktop'
-
-# Superfile with specific file operations
-sffind() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: sffind <pattern>"
-        return 1
-    fi
-    local pattern="$1"
-    local files=$(find . -name "*$pattern*" -type f | head -20)
-    if [[ -n "$files" ]]; then
-        echo "$files" | head -1 | xargs superfile --select
-    else
-        echo "No files found matching: $pattern"
-    fi
-}
-
-# Superfile with git integration
-sfgit() {
-    # Open superfile in git root with git files only
-    local git_root
-    if git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
-        (cd "$git_root" && superfile --filter "*.git*")
-    else
-        echo "Not in a git repository"
-        return 1
-    fi
-}
 
 # Superfile environment variables
 export SUPERFILE_CONFIG_FILE="$HOME/.config/superfile/config.toml"

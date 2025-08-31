@@ -3,9 +3,13 @@
 # This file sets up aliases and functions for Yazi
 
 # Yazi aliases
-alias y='yazi'
-alias ya='yazi'                    # Alternative alias
-alias yazi-cd='yazi --cwd-file /tmp/yazi-cwd'  # For directory changing
+# Note: The 'y' function below will override this alias
+
+# Extra yazi aliases (enabled with EXTRA_ALIASES=true)
+if [[ "$EXTRA_ALIASES" == "true" ]]; then
+    alias ya='yazi'                    # Alternative alias
+    alias yazi-cd='yazi --cwd-file /tmp/yazi-cwd'  # For directory changing
+fi
 
 # Yazi functions
 
@@ -19,69 +23,72 @@ y() {
     rm -f -- "$tmp"
 }
 
-# Open Yazi in current directory
-yz() {
-    yazi
-}
+# Extra yazi functions (enabled with EXTRA_ALIASES=true)
+if [[ "$EXTRA_ALIASES" == "true" ]]; then
+    # Open Yazi in current directory
+    yz() {
+        yazi
+    }
 
-# Open Yazi with specific directory
-yzd() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: yzd <directory>"
-        return 1
-    fi
-    yazi "$1"
-}
-
-# Open Yazi and show hidden files
-yzh() {
-    YAZI_CONFIG_HOME="$HOME/.config/yazi" yazi --show-hidden
-}
-
-# Yazi with custom configuration
-yzc() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: yzc <config-file>"
-        return 1
-    fi
-    YAZI_CONFIG_HOME="$1" yazi
-}
-
-# Quick navigation with Yazi
-yzp() {
-    # Open Yazi in project root (look for common project files)
-    local project_root="$PWD"
-    while [[ "$project_root" != "/" ]]; do
-        if [[ -f "$project_root/package.json" ]] || \
-           [[ -f "$project_root/Cargo.toml" ]] || \
-           [[ -f "$project_root/go.mod" ]] || \
-           [[ -f "$project_root/pyproject.toml" ]] || \
-           [[ -f "$project_root/.git" ]]; then
-            break
+    # Open Yazi with specific directory
+    yzd() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: yzd <directory>"
+            return 1
         fi
-        project_root="$(dirname "$project_root")"
-    done
+        yazi "$1"
+    }
 
-    if [[ "$project_root" == "/" ]]; then
-        echo "No project root found"
-        yazi
-    else
-        echo "Opening project at: $project_root"
-        yazi "$project_root"
-    fi
-}
+    # Open Yazi and show hidden files
+    yzh() {
+        YAZI_CONFIG_HOME="$HOME/.config/yazi" yazi --show-hidden
+    }
 
-# Yazi with git integration
-yzg() {
-    # Open Yazi in git root
-    local git_root
-    if git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
-        yazi "$git_root"
-    else
-        echo "Not in a git repository"
-        yazi
-    fi
-}
+    # Yazi with custom configuration
+    yzc() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: yzc <config-file>"
+            return 1
+        fi
+        YAZI_CONFIG_HOME="$1" yazi
+    }
+
+    # Quick navigation with Yazi
+    yzp() {
+        # Open Yazi in project root (look for common project files)
+        local project_root="$PWD"
+        while [[ "$project_root" != "/" ]]; do
+            if [[ -f "$project_root/package.json" ]] || \
+               [[ -f "$project_root/Cargo.toml" ]] || \
+               [[ -f "$project_root/go.mod" ]] || \
+               [[ -f "$project_root/pyproject.toml" ]] || \
+               [[ -f "$project_root/.git" ]]; then
+                break
+            fi
+            project_root="$(dirname "$project_root")"
+        done
+
+        if [[ "$project_root" == "/" ]]; then
+            echo "No project root found"
+            yazi
+        else
+            echo "Opening project at: $project_root"
+            yazi "$project_root"
+        fi
+    }
+
+    # Yazi with git integration
+    yzg() {
+        # Open Yazi in git root
+        local git_root
+        if git_root=$(git rev-parse --show-toplevel 2>/dev/null); then
+            yazi "$git_root"
+        else
+            echo "Not in a git repository"
+            yazi
+        fi
+    }
+fi
 
 # Yazi help and information
 yazi-info() {
@@ -236,74 +243,79 @@ yazi-plugins() {
     esac
 }
 
-# Yazi integration with other tools
+# Extra yazi integration functions (enabled with EXTRA_ALIASES=true)
+if [[ "$EXTRA_ALIASES" == "true" ]]; then
+    # Open file with Yazi and edit with Neovim
+    yzedit() {
+        local file
+        file=$(yazi --chooser-file /tmp/yazi-chooser 2>/dev/null && cat /tmp/yazi-chooser)
+        rm -f /tmp/yazi-chooser
 
-# Open file with Yazi and edit with Neovim
-yzedit() {
-    local file
-    file=$(yazi --chooser-file /tmp/yazi-chooser 2>/dev/null && cat /tmp/yazi-chooser)
-    rm -f /tmp/yazi-chooser
+        if [[ -n "$file" ]]; then
+            ${EDITOR:-vim} "$file"
+        fi
+    }
 
-    if [[ -n "$file" ]]; then
-        ${EDITOR:-vim} "$file"
-    fi
-}
+    # Yazi as a file picker for other commands
+    yzpick() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: yzpick <command>"
+            echo "Example: yzpick 'cat'"
+            return 1
+        fi
 
-# Yazi as a file picker for other commands
-yzpick() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: yzpick <command>"
-        echo "Example: yzpick 'cat'"
-        return 1
-    fi
+        local cmd="$1"
+        local files
+        files=$(yazi --chooser-file /tmp/yazi-picker 2>/dev/null && cat /tmp/yazi-picker)
+        rm -f /tmp/yazi-picker
 
-    local cmd="$1"
-    local files
-    files=$(yazi --chooser-file /tmp/yazi-picker 2>/dev/null && cat /tmp/yazi-picker)
-    rm -f /tmp/yazi-picker
+        if [[ -n "$files" ]]; then
+            echo "$files" | xargs -I {} $cmd {}
+        fi
+    }
 
-    if [[ -n "$files" ]]; then
-        echo "$files" | xargs -I {} $cmd {}
-    fi
-}
+    # Yazi with specific file operations
+    yzfind() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: yzfind <pattern>"
+            return 1
+        fi
+        local pattern="$1"
+        local files=$(find . -name "*$pattern*" -type f | head -20)
+        if [[ -n "$files" ]]; then
+            echo "$files" | yazi
+        else
+            echo "No files found matching: $pattern"
+        fi
+    }
+
+    # Yazi with ripgrep integration
+    yzgrep() {
+        if [[ $# -eq 0 ]]; then
+            echo "Usage: yzgrep <pattern>"
+            return 1
+        fi
+        local pattern="$1"
+        local files=$(rg -l "$pattern" . 2>/dev/null | head -20)
+        if [[ -n "$files" ]]; then
+            echo "$files" | yazi
+        else
+            echo "No files found containing: $pattern"
+        fi
+    }
+fi
 
 # Quick access to common directories with Yazi
-alias yzhome='yazi ~'
-alias yzconfig='yazi ~/.config'
-alias yzdotfiles='yazi ~/.local/share/chezmoi'
-alias yzdownloads='yazi ~/Downloads'
-alias yzdocuments='yazi ~/Documents'
-alias yzdesktop='yazi ~/Desktop'
+yzhome='yazi ~'
+yzconfig='yazi ~/.config'
+yzdotfiles='yazi ~/.local/share/chezmoi'
 
-# Yazi with specific file operations
-yzfind() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: yzfind <pattern>"
-        return 1
-    fi
-    local pattern="$1"
-    local files=$(find . -name "*$pattern*" -type f | head -20)
-    if [[ -n "$files" ]]; then
-        echo "$files" | yazi
-    else
-        echo "No files found matching: $pattern"
-    fi
-}
-
-# Yazi with ripgrep integration
-yzgrep() {
-    if [[ $# -eq 0 ]]; then
-        echo "Usage: yzgrep <pattern>"
-        return 1
-    fi
-    local pattern="$1"
-    local files=$(rg -l "$pattern" . 2>/dev/null | head -20)
-    if [[ -n "$files" ]]; then
-        echo "$files" | yazi
-    else
-        echo "No files found containing: $pattern"
-    fi
-}
+# Extra yazi directory shortcuts (enabled with EXTRA_ALIASES=true)
+if [[ "$EXTRA_ALIASES" == "true" ]]; then
+    yzdownloads='yazi ~/Downloads'
+    yzdocuments='yazi ~/Documents'
+    yzdesktop='yazi ~/Desktop'
+fi
 
 # Yazi environment variables
 export YAZI_CONFIG_HOME="$HOME/.config/yazi"
