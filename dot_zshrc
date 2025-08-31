@@ -224,3 +224,23 @@ alias taskmaster='task-master'
 
 # opencode
 export PATH=/Users/samimishal/.opencode/bin:~/.config/tmuxp:$PATH
+
+# Load configuration files from dot_zshrc.d/
+if [ -d "$HOME/.zshrc.d" ]; then
+  for config_file in "$HOME/.zshrc.d"/*.zsh "$HOME/.zshrc.d"/*.zsh.tmpl; do
+    if [ -f "$config_file" ]; then
+      source "$config_file"
+    fi
+  done
+  
+  # Load files from subdirectories
+  for subdir in "$HOME/.zshrc.d"/*/; do
+    if [ -d "$subdir" ]; then
+      for config_file in "$subdir"/*.zsh "$subdir"/*.zsh.tmpl; do
+        if [ -f "$config_file" ]; then
+          source "$config_file"
+        fi
+      done
+    fi
+  done
+fi
