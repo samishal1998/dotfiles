@@ -38,6 +38,17 @@
       - git-delta
       - gh
       - hub
+      - ffmpeg
+      - sevenzip
+      - jq
+      - poppler
+      - fd
+      - ripgrep
+      - fzf
+      - zoxide
+      - resvg
+      - imagemagick
+      - font-symbols-only-nerd-font
     state: present
 
 - name: Install fonts

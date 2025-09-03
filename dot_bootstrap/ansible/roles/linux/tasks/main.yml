@@ -5,7 +5,7 @@
     cache_valid_time: 3600
   when: ansible_os_family == 'Debian'
 
-- name: Install essential packages
+- name: Install essential packages (Debian)
   package:
     name:
       - build-essential
@@ -35,6 +35,15 @@
       - bat
       - fd-find
       - delta
+      - ffmpeg
+      - 7zip
+      - jq
+      - poppler-utils
+      - fd-find
+      - ripgrep
+      - fzf
+      - zoxide
+      - imagemagick 
     state: present
   when: ansible_os_family == 'Debian'
 
@@ -55,9 +64,9 @@
     fi
 
     # Install yazi
-    if ! command -v yazi >/dev/null 2>&1; then
-      cargo install --locked yazi-fm
-    fi
+    #if ! command -v yazi >/dev/null 2>&1; then
+    #  cargo install --locked yazi-fm
+    #fi
 
     # Install superfile
     if ! command -v superfile >/dev/null 2>&1; then
