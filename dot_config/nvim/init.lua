@@ -43,7 +43,29 @@ vim.opt.foldenable = false
 
 
 vim.opt.termguicolors = true
-local bufferline = require "bufferline"
+
+function isModuleAvailable(name)
+  if package.loaded[name] then
+    return true
+  else
+    for _, searcher in ipairs(package.searchers or package.loaders) do
+      local loader = searcher(name)
+      if type(loader) == 'function' then
+        package.preload[name] = loader
+        return true
+      end
+    end
+    return false
+  end
+end
+
+if isModuleAvailable('bufferline') then
+  setup_bufferline()
+end
+
+function setup_bufferline()
+
+  local bufferline = require "bufferline"
 local groups = require('bufferline.groups')
 
 bufferline.setup {
@@ -56,7 +78,7 @@ bufferline.setup {
     close_command = "bdelete! %d", -- can be a string | function, | false see "Mouse actions"
     right_mouse_command = "bdelete! %d", -- can be a string | function | false, see "Mouse actions"
     left_mouse_command = "buffer %d", -- can be a string | function, | false see "Mouse actions"
-    middle_mouse_command = nil, -- can be a string | function, | false see "Mouse actions"
+    middle_mouse_command = 'bdelete! %d', -- can be a string | function, | false see "Mouse actions"
     indicator = {
       icon = "▎", -- this should be omitted if indicator style is not 'icon'
       style = "underline",
@@ -174,3 +196,6 @@ bufferline.setup {
     --
   },
 }
+  
+end
+
