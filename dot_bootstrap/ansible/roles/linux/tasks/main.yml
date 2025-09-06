@@ -70,7 +70,7 @@
 
     # Install superfile
     if ! command -v superfile >/dev/null 2>&1; then
-      go install github.com/MHNightCat/superfile@latest
+      bash -c "$(curl -sLo- https://superfile.netlify.app/install.sh)"
     fi
   args:
     executable: /bin/bash
