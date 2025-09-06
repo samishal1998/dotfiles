@@ -87,3 +87,13 @@
     - { repo: "https://github.com/zsh-users/zsh-autosuggestions", dest: "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" }
     - { repo: "https://github.com/zsh-users/zsh-syntax-highlighting", dest: "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" }
     - { repo: "https://github.com/zsh-users/zsh-completions", dest: "~/.oh-my-zsh/custom/plugins/zsh-completions" }
+
+- name: Install Node.js package managers
+  npm:
+    name: "{{ item }}"
+    global: yes
+    state: present
+  loop:
+    - yarn
+    - pnpm
+    - bun

@@ -116,11 +116,11 @@
     - pnpm
     - bun
 
-- name: Install Python package managers
-  pip:
-    name: "{{ item }}"
-    state: present
-  loop:
-    - poetry
-    - pipenv
-  when: ansible_python.version.major == 3
+# - name: Install Python package managers
+#   pip:
+#     name: "{{ item }}"
+#     state: present
+#   loop:
+#     - poetry
+#     - pipenv
+#   when: ansible_python.version.major == 3
