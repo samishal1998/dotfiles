@@ -71,29 +71,4 @@
     - { domain: "NSGlobalDomain", key: "KeyRepeat", value: "2" }
     - { domain: "NSGlobalDomain", key: "InitialKeyRepeat", value: "15" }
 
-- name: Install Oh My Zsh
-  shell: |
-    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-  args:
-    creates: ~/.oh-my-zsh
 
-- name: Install Zsh plugins
-  git:
-    repo: "{{ item.repo }}"
-    dest: "{{ item.dest }}"
-    clone: yes
-    update: yes
-  loop:
-    - { repo: "https://github.com/zsh-users/zsh-autosuggestions", dest: "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" }
-    - { repo: "https://github.com/zsh-users/zsh-syntax-highlighting", dest: "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" }
-    - { repo: "https://github.com/zsh-users/zsh-completions", dest: "~/.oh-my-zsh/custom/plugins/zsh-completions" }
-
-- name: Install Node.js package managers
-  npm:
-    name: "{{ item }}"
-    global: yes
-    state: present
-  loop:
-    - yarn
-    - pnpm
-    - bun

@@ -19,9 +19,6 @@ export GOROOT="/usr/local/go"
 
 # Add Go binaries to PATH
 export PATH="$GOPATH/bin:$PATH"
-{{ if .GOROOT -}}
-export PATH="$GOROOT/bin:$PATH"
-{{ end -}}
 
 # Go development settings
 export GO111MODULE="on"                    # Enable Go modules
@@ -76,7 +73,7 @@ gocreate() {
     mkdir -p cmd pkg internal
 
     # Create main.go
-    cat > cmd/main.go << EOF
+    cat > cmd/main.go << 'EOF'
 package main
 
 import "fmt"

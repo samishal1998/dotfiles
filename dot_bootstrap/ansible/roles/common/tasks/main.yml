@@ -36,3 +36,52 @@
     name: "{{ common_packages }}"
     state: present
   when: ansible_os_family == 'Darwin'
+
+
+- name: Install global packages (cargo)
+  community.general.cargo:
+    name:
+      - eza
+      - yazi-fm
+
+- name: Install global packages (Go)
+  shell: |
+    go install github.com/jesseduffield/lazydocker@latest
+  become: yes
+
+- name: Install Oh My Zsh
+  shell: |
+    sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  args:
+    creates: ~/.oh-my-zsh
+
+- name: Install Zsh plugins
+  git:
+    repo: "{{ item.repo }}"
+    dest: "{{ item.dest }}"
+    clone: yes
+    update: yes
+  loop:
+    - { repo: "https://github.com/zsh-users/zsh-autosuggestions", dest: "~/.oh-my-zsh/custom/plugins/zsh-autosuggestions" }
+    - { repo: "https://github.com/zsh-users/zsh-syntax-highlighting", dest: "~/.oh-my-zsh/custom/plugins/zsh-syntax-highlighting" }
+    - { repo: "https://github.com/zsh-users/zsh-completions", dest: "~/.oh-my-zsh/custom/plugins/zsh-completions" }
+
+- name: Install Node.js package managers
+  npm:
+    name: "{{ item }}"
+    global: yes
+    state: present
+  loop:
+    - yarn
+    - pnpm
+    - bun
+
+  # - name: Install Python package managers
+  #   pip:
+  #     name: "{{ item }}"
+  #     state: present
+  #   loop:
+  #     - poetry
+  #     - pipenv
+  #   when: ansible_python.version.major == 3
+

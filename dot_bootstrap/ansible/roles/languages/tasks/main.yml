@@ -1,9 +1,10 @@
 ---
 - name: Install Go
   shell: |
-    {{ 'brew install go' if ansible_os_family == 'Darwin' else 'wget -O go.tar.gz https://golang.org/dl/go1.21.5.linux-amd64.tar.gz && sudo tar -C /usr/local -xzf go.tar.gz && rm go.tar.gz' }}
+    {{ 'brew install go' if ansible_os_family == 'Darwin' else 'wget -O go.tar.gz https://golang.org/dl/go1.21.5.linux-amd64.tar.gz && tar -C /usr/local -xzf go.tar.gz && rm go.tar.gz' }}
   args:
     executable: /bin/bash
+  become: yes
 
 - name: Install Rust
   shell: |
@@ -13,6 +14,7 @@
     rustup component add clippy
   args:
     executable: /bin/bash
+  become: yes
 
 - name: Install Node.js (using nvm)
   shell: |
@@ -24,24 +26,26 @@
     npm install -g yarn pnpm bun
   args:
     executable: /bin/bash
+  become: yes
 
-- name: Install Python tools
-  shell: |
-    # Install pyenv
-    curl https://pyenv.run | bash
-
-    # Install latest Python
-    export PATH="$HOME/.pyenv/bin:$PATH"
-    pyenv install 3.11.6
-    pyenv global 3.11.6
-
-    # Install pip packages
-    pip install --user pipenv poetry black flake8 mypy pytest
-
-    # Install pre-commit
-    pip install --user pre-commit
-  args:
-    executable: /bin/bash
+# - name: Install Python tools
+#   shell: |
+#     # Install pyenv
+#     curl https://pyenv.run | bash
+#
+#     # Install latest Python
+#     export PATH="$HOME/.pyenv/bin:$PATH"
+#     pyenv install 3.11.6
+#     pyenv global 3.11.6
+#
+#     # Install pip packages
+#     pip install --user pipenv poetry black flake8 mypy pytest
+#
+#     # Install pre-commit
+#     pip install --user pre-commit
+#   args:
+#     executable: /bin/bash
+#   become: yes
 
 - name: Set up Go workspace
   file:
@@ -70,22 +74,22 @@
   loop:
     - ~/projects/node
 
-- name: Set up Python workspace
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-  loop:
-    - ~/projects/python
-    - ~/.virtualenvs
+# - name: Set up Python workspace
+#   file:
+#     path: "{{ item }}"
+#     state: directory
+#     mode: '0755'
+#   loop:
+#     - ~/projects/python
+#     - ~/.virtualenvs
 
-- name: Configure language-specific settings
-  template:
-    src: "{{ item.src }}"
-    dest: "{{ item.dest }}"
-    mode: '0644'
-  loop:
-    - { src: "go_env.j2", dest: "~/.go_env" }
-    - { src: "rust_env.j2", dest: "~/.rust_env" }
-    - { src: "node_env.j2", dest: "~/.node_env" }
-    - { src: "python_env.j2", dest: "~/.python_env" }
+# - name: Configure language-specific settings
+#   template:
+#     src: "{{ item.src }}"
+#     dest: "{{ item.dest }}"
+#     mode: '0644'
+#   loop:
+#     - { src: "go_env.j2", dest: "~/.go_env" }
+#     - { src: "rust_env.j2", dest: "~/.rust_env" }
+#     - { src: "node_env.j2", dest: "~/.node_env" }
+    # - { src: "python_env.j2", dest: "~/.python_env" }

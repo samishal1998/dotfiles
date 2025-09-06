@@ -1,0 +1,42 @@
+---
+- name: Configure GitHub CLI
+  shell: |
+    gh auth login --with-token < /dev/null || true
+    gh config set git_protocol https
+    gh config set editor nvim
+  ignore_errors: yes
+
+- name: Set up SSH configuration
+  file:
+    path: ~/.ssh
+    state: directory
+    mode: '0700'
+
+- name: Create SSH config
+  template:
+    src: ssh_config.j2
+    dest: ~/.ssh/config
+    mode: '0600'
+
+- name: Set up GPG
+  shell: |
+    gpg --list-keys || gpg --generate-key --batch <<EOF
+    %no-protection
+    Key-Type: RSA
+    Key-Length: 4096
+    Name-Real: {{ git_user_name }}
+    Name-Email: {{ git_user_email }}
+    Expire-Date: 0
+    %commit
+    EOF
+  ignore_errors: yes
+
+- name: Configure Git with GPG
+  git_config:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    scope: global
+  loop:
+    - { name: "commit.gpgsign", value: "true" }
+    - { name: "gpg.program", value: "gpg" }
+  when: gpg_key_id is defined
