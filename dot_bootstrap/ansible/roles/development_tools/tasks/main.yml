@@ -1,32 +1,61 @@
 ---
-- name: Install 1Password CLI
-  shell: |
-    {{ 'brew install --cask 1password-cli' if ansible_os_family == 'Darwin' else 'curl -sS https://downloads.1password.com/linux/keys/1password.asc | sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/amd64 stable main" | sudo tee /etc/apt/sources.list.d/1password.list && sudo apt update && sudo apt install -y 1password-cli' }}
-  args:
-    executable: /bin/bash
+- name: Install 1Password CLI (mac)
+  homebrew:
+    name: 1password-cli
+    state: present
+  when: ansible_os_family == 'Darwin'
 
-- name: Install GitHub CLI
+- name: Install 1Password CLI (linux APT)
   shell: |
-    {{ 'brew install gh' if ansible_os_family == 'Darwin' else 'curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt update && sudo apt install gh' }}
+    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+    sudo gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
+    sudo tee /etc/apt/sources.list.d/1password.list && \
+    sudo mkdir -p /etc/debsig/policies/AC2D62742012EA22/ && \
+    curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
+    sudo tee /etc/debsig/policies/AC2D62742012EA22/1password.pol && \
+    sudo mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22 && \
+    curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
+    sudo gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg && \
+    sudo apt update && sudo apt install 1password-cli
   args:
     executable: /bin/bash
+  when: ansible_os_family == 'Debian'
+
+- name: Install GitHub CLI (macos)
+  homebrew:
+    name: gh
+    state: present
+  when: ansible_os_family == 'Darwin' 
+
+
+- name: Install GitHub CLI (linux APT)
+  shell: |
+    (type -p wget >/dev/null || (sudo apt update && sudo apt install wget -y)) \
+    && sudo mkdir -p -m 755 /etc/apt/keyrings \
+    && out=$(mktemp) && wget -nv -O$out https://cli.github.com/packages/githubcli-archive-keyring.gpg \
+    && cat $out | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg > /dev/null \
+    && sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg \
+    && sudo mkdir -p -m 755 /etc/apt/sources.list.d \
+    && echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null \
+    && sudo apt update \
+    && sudo apt install gh -y
+  args:
+    executable: /bin/bash
+  when: ansible_os_family == 'Debian'
+
+
+- name: Install additional development tools (cargo)
+  community.general.cargo:
+    name: eza
 
 - name: Install additional development tools
   shell: |
     # Install delta for better git diffs
     {{ 'brew install git-delta' if ansible_os_family == 'Darwin' else 'wget -O delta.deb https://github.com/dandavison/delta/releases/download/0.16.5/git-delta_0.16.5_amd64.deb && sudo dpkg -i delta.deb && rm delta.deb' }}
 
-    # Install eza (modern ls replacement)
-    {{ 'brew install eza' if ansible_os_family == 'Darwin' else 'wget -O eza.deb https://github.com/eza-community/eza/releases/download/v0.16.0/eza_0.16.0-1_amd64.deb && sudo dpkg -i eza.deb && rm eza.deb' }}
-
-    # Install zoxide (smarter cd)
-    curl -sS https://raw.githubusercontent.com/ajeetdsouza/zoxide/main/install.sh | bash
-
-    # Install starship (cross-shell prompt)
+    # # Install starship (cross-shell prompt)
     curl -sS https://starship.rs/install.sh | sh -s -- -y
-
-    # Install tmuxp (tmux session manager)
-    {{ 'brew install tmuxp' if ansible_os_family == 'Darwin' else 'pip3 install tmuxp' }}
 
     # Install asdf (version manager)
     {{ 'brew install asdf' if ansible_os_family == 'Darwin' else 'git clone https://github.com/asdf-vm/asdf.git ~/.asdf --branch v0.14.0' }}
