@@ -1,0 +1,16 @@
+---
+- name: Early bootstrap (install chezmoi and 1Password CLI)
+  hosts: localhost
+  connection: local
+  gather_facts: true
+
+  vars:
+    is_macos: "{{ ansible_os_family == 'Darwin' }}"
+    is_debian: "{{ ansible_os_family == 'Debian' }}"
+
+  roles:
+    - essentials
+    - bootstrap_init
+    - languages
+
+

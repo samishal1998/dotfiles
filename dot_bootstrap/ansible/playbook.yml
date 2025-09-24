@@ -8,8 +8,6 @@
     is_linux: "{{ ansible_os_family == 'Debian' or ansible_os_family == 'RedHat' }}"
 
   roles:
-    - essentials
-    - languages
     - common
     - { role: macos, when: is_macos }
     - { role: linux, when: is_linux }
