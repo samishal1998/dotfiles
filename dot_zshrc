@@ -1,3 +1,5 @@
+export LANG="en_US.UTF-8"
+export LC_ALL="en_US.UTF-8"
 # Add deno completions to search path
 if [[ ":$FPATH:" != *":/Users/samimishal/completions:"* ]]; then export FPATH="/Users/samimishal/completions:$FPATH"; fi
 # If you come from bash you might have to change your $PATH.
@@ -116,7 +118,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 export PATH="$HOME/.jenv/bin:$PATH"
-eval "$(jenv init -)"
+command -v jenv >/dev/null && eval "$(jenv init -)"
 
 
 export VCPKG_ROOT="$HOME/vcpkg"
@@ -124,7 +126,7 @@ export PATH="$PATH":"$HOME/.pub-cache/bin"
 
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
+command -v pyenv >/dev/null && eval "$(pyenv init -)"
 #export PATH="$PATH":"$HOME/development/flutter/.pub-cache/bin"
 export PATH="$PATH":"$HOME/fvm/default/bin"
 export NODE_PATH=$NODE_PATH:`npm root -g`
@@ -189,7 +191,11 @@ export REQUEST_API_KEY="{{ onepasswordRead \"op://Personal/API Keys/REQUEST_API_
 export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
 export ANTHROPIC_MODEL="deepseek-chat"
 export ANTHROPIC_SMALL_FAST_MODEL="deepseek-chat"
-. "/Users/samimishal/.deno/env"
+
+if [ -z "$HOME/.deno/env" ]; then
+      . "$HOME/.deno/env"
+fi
+
 # Initialize zsh completions (added by deno install script)
 # autoload -Uz compinit
 # compinit
@@ -202,11 +208,11 @@ alias tm='task-master'
 alias taskmaster='task-master'
 
 # opencode
-export PATH=/Users/samimishal/.opencode/bin:~/.config/tmuxp:$PATH
+export PATH=$HOME/.opencode/bin:~/.config/tmuxp:$PATH
 
 # Load configuration files from dot_zshrc.d/
 if [ -d "$HOME/.zshrc.d" ]; then
-  for config_file in "$HOME/.zshrc.d"/*.zsh "$HOME/.zshrc.d"/*.zsh.tmpl; do
+  for config_file in "$HOME/.zshrc.d"/*.zsh; do
     if [ -f "$config_file" ]; then
       source "$config_file"
     fi
@@ -215,7 +221,7 @@ if [ -d "$HOME/.zshrc.d" ]; then
   # Load files from subdirectories
   for subdir in "$HOME/.zshrc.d"/*/; do
     if [ -d "$subdir" ]; then
-      for config_file in "$subdir"/*.zsh "$subdir"/*.zsh.tmpl; do
+      for config_file in "$subdir"*.zsh; do
         if [ -f "$config_file" ]; then
           source "$config_file"
         fi
