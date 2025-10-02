@@ -1,27 +1,35 @@
 ---
-- name: Install 1Password CLI (mac)
+- name: check if 'op' is installed
+  ansible.builtin.command: which op
+  register: op_check
+  ignore_errors: true
+
+- name: Install 1Password CLI (macOS)
   homebrew:
     name: 1password-cli
     state: present
-  when: ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin' and op_check.rc != 0
 
-- name: Install 1Password CLI (linux APT)
+- name: Install 1Password CLI (Debian/Ubuntu)
   shell: |
+    set -euo pipefail
+    (type -p gpg >/dev/null 2>&1) || (apt update && apt install -y gnupg)
     curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
-    gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg && \
+      gpg --dearmor --output /usr/share/keyrings/1password-archive-keyring.gpg
     echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/1password-archive-keyring.gpg] https://downloads.1password.com/linux/debian/$(dpkg --print-architecture) stable main" | \
-    tee /etc/apt/sources.list.d/1password.list && \
-    mkdir -p /etc/debsig/policies/AC2D62742012EA22/ && \
+      tee /etc/apt/sources.list.d/1password.list
+    mkdir -p /etc/debsig/policies/AC2D62742012EA22/
     curl -sS https://downloads.1password.com/linux/debian/debsig/1password.pol | \
-    tee /etc/debsig/policies/AC2D62742012EA22/1password.pol && \
-    mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22 && \
+      tee /etc/debsig/policies/AC2D62742012EA22/1password.pol
+    mkdir -p /usr/share/debsig/keyrings/AC2D62742012EA22
     curl -sS https://downloads.1password.com/linux/keys/1password.asc | \
-    gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg && \
-    apt update && apt install 1password-cli
+      gpg --dearmor --output /usr/share/debsig/keyrings/AC2D62742012EA22/debsig.gpg
+    apt update
+    apt install -y 1password-cli
   args:
     executable: /bin/bash
-  when: ansible_os_family == 'Debian'
-  become: yes
+  when: ansible_os_family == 'Debian' and op_check.rc != 0
+  become: true
 
 - name: Install GitHub CLI (macos)
   homebrew:

@@ -49,7 +49,8 @@ install_linux() {
   case "$PM" in
     apt)
       sudo apt update -y
-      sudo apt install -y curl wget python3 python3-pip git software-properties-common || true
+      sudo apt install -y curl wget python3 python3-pip git || true
+      sudo apt install -y software-properties-common || true
       # Prefer distro ansible if available
       if ! has_cmd ansible-playbook; then
         pip3 install --break-system-packages --user ansible

@@ -21,12 +21,22 @@
     state: present
     insertafter: EOF
   when: ansible_os_family != 'Darwin'
+  loop:
+    - ~/.profile
+    - ~/.zprofile
+    - ~/.bashrc
+    - ~/.bash_profile
+
+- name: check if 'op' is installed
+  ansible.builtin.command: which op
+  register: op_check
+  ignore_errors: true
 
 - name: Install 1Password CLI (macOS)
   homebrew:
     name: 1password-cli
     state: present
-  when: ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin' and op_check.rc != 0
 
 - name: Install 1Password CLI (Debian/Ubuntu)
   shell: |
@@ -46,7 +56,7 @@
     apt install -y 1password-cli
   args:
     executable: /bin/bash
-  when: ansible_os_family == 'Debian'
+  when: ansible_os_family == 'Debian' and op_check.rc != 0
   become: true
 
 - name: Display next steps

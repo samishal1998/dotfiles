@@ -6,6 +6,20 @@
     executable: /bin/bash
   become: yes
 
+- name: Ensure /usr/local/go/bin on PATH (Linux)
+  lineinfile:
+    path: ~/.profile
+    create: yes
+    line: 'export PATH="/usr/local/go/bin:$PATH"'
+    state: present
+    insertafter: EOF
+  when: ansible_os_family != 'Darwin'
+  loop:
+    - ~/.profile
+    - ~/.zprofile
+    - ~/.bashrc
+    - ~/.bash_profile
+
 - name: Install Rust
   shell: |
     curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
