@@ -317,7 +317,7 @@ return {
       --   executable = {
       --     command = "node",
       --     -- 💀 Make sure to update this path to point to your installation
-      --     args = { "/Users/samimishal/js-debug/src/dapDebugServer.js", "${port}" },
+      --     args = { "$HOME/js-debug/src/dapDebugServer.js", "${port}" },
       --   },
       -- }
       --

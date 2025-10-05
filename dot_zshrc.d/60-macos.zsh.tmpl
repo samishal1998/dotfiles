@@ -188,57 +188,6 @@ mac-cleanup() {
     echo "Cleanup completed!"
 }
 
-# Install common macOS development tools
-install-macos-tools() {
-    echo "Installing common macOS development tools..."
-
-    # Install Xcode command line tools
-    if ! xcode-select -p >/dev/null 2>&1; then
-        echo "Installing Xcode command line tools..."
-        xcode-select --install
-    fi
-
-    # Install Homebrew if not installed
-    if ! command -v brew >/dev/null 2>&1; then
-        echo "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-    fi
-
-    # Install essential tools
-    brew install \
-        git \
-        wget \
-        curl \
-        jq \
-        yq \
-        tree \
-        htop \
-        tmux \
-        neovim \
-        fzf \
-        ripgrep \
-        fd \
-        bat \
-        eza \
-        delta \
-        lazygit \
-        lazydocker \
-        1password-cli
-
-    # Install casks
-    brew install --cask \
-        visual-studio-code \
-        google-chrome \
-        firefox \
-        iterm2 \
-        docker \
-        slack \
-        discord \
-        spotify
-
-    echo "macOS tools installed successfully!"
-}
-
 # macOS-specific PATH adjustments
 export PATH="$HOME/.local/bin:$PATH"
 export PATH="$HOME/bin:$PATH"

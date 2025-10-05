@@ -15,26 +15,10 @@ alias mv='mv -i'
 alias rm='rm -i'
 alias mkdir='mkdir -p'
 
-# Git aliases
-alias g='git'
-alias gs='git status'
-alias ga='git add'
-alias gc='git commit'
-alias gp='git push'
-alias gl='git pull'
-alias gd='git diff'
-alias gco='git checkout'
-alias gb='git branch'
-
-# Docker aliases
-alias d='docker'
-alias dc='docker-compose'
-alias dcu='docker-compose up'
-alias dcd='docker-compose down'
 
 # Tool aliases
-alias lg='lazygit'
-alias ld='lazydocker'
+alias lzg='lazygit'
+alias lzd='lazydocker'
 alias y='yazi'
 alias rg='ripgrep'
 
@@ -42,30 +26,6 @@ alias rg='ripgrep'
 alias dev='cd ~/dev'
 alias dotfiles='cd ~/.local/share/chezmoi'
 
-# macOS-specific aliases
-{{ if eq .chezmoi.os "darwin" -}}
-alias showfiles='defaults write com.apple.finder AppleShowAllFiles YES && killall Finder'
-alias hidefiles='defaults write com.apple.finder AppleShowAllFiles NO && killall Finder'
-alias flushdns='sudo dscacheutil -flushcache && sudo killall -HUP mDNSResponder'
-alias cleanup='find . -name ".DS_Store" -delete'
-{{ end -}}
-
-# Linux-specific aliases
-{{ if eq .chezmoi.os "linux" -}}
-alias ls='ls --color=auto'
-alias grep='grep --color=auto'
-alias aptup='sudo apt update && sudo apt upgrade'
-alias aptin='sudo apt install'
-alias aptclean='sudo apt autoclean && sudo apt autoremove'
-{{ end -}}
-
-# Work-specific aliases (only if this is a work machine)
-{{ if .is_work -}}
-alias work='cd ~/work'
-alias prod='kubectl config use-context production'
-alias staging='kubectl config use-context staging'
-alias dev='kubectl config use-context development'
-{{ end -}}
 
 # Function aliases (more complex operations)
 # Quick backup of current directory

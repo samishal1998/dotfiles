@@ -23,30 +23,6 @@ alias ll='ls -alF'
 alias la='ls -A'
 alias l='ls -CF'
 
-# Package management aliases (Debian/Ubuntu)
-alias aptup='sudo apt update && sudo apt upgrade'
-alias aptin='sudo apt install'
-alias aptrm='sudo apt remove'
-alias aptsearch='apt search'
-alias aptshow='apt show'
-alias aptclean='sudo apt autoclean && sudo apt autoremove'
-
-# Package management aliases (Arch Linux)
-alias pacup='sudo pacman -Syu'
-alias pacin='sudo pacman -S'
-alias pacrm='sudo pacman -Rns'
-alias pacsearch='pacman -Ss'
-alias pacinfo='pacman -Si'
-alias paclist='pacman -Qe'
-
-# System management aliases
-alias s='sudo'
-alias systemctl='sudo systemctl'
-alias journalctl='sudo journalctl'
-alias service='sudo service'
-alias modprobe='sudo modprobe'
-alias rmmod='sudo rmmod'
-
 # Network aliases
 alias netstat='ss'  # ss is the modern replacement for netstat
 alias ports='netstat -tlnp'
@@ -77,8 +53,7 @@ alias untxz='tar -xJf'
 
 # Development aliases
 alias code='code'  # VS Code
-alias docker='sudo docker'
-alias docker-compose='sudo docker-compose'
+
 
 # Linux development functions
 
@@ -177,87 +152,6 @@ linux-cleanup() {
     sudo journalctl --vacuum-time=7d
 
     echo "Cleanup completed!"
-}
-
-# Install common Linux development tools
-install-linux-tools() {
-    echo "Installing common Linux development tools..."
-
-    # Detect package manager
-    if command -v apt >/dev/null 2>&1; then
-        # Debian/Ubuntu
-        sudo apt update
-        sudo apt install -y \
-            git \
-            curl \
-            wget \
-            jq \
-            tree \
-            htop \
-            tmux \
-            neovim \
-            fzf \
-            ripgrep \
-            fd-find \
-            bat \
-            exa \
-            delta \
-            build-essential \
-            cmake \
-            python3-dev \
-            python3-pip \
-            golang \
-            nodejs \
-            npm \
-            docker.io \
-            docker-compose
-
-        # Install lazygit and lazydocker
-        if ! command -v lazygit >/dev/null 2>&1; then
-            LAZYGIT_VERSION=$(curl -s "https://api.github.com/repos/jesseduffield/lazygit/releases/latest" | grep -Po '"tag_name": "v\K[^"]*')
-            curl -Lo lazygit.tar.gz "https://github.com/jesseduffield/lazygit/releases/latest/download/lazygit_${LAZYGIT_VERSION}_Linux_x86_64.tar.gz"
-            tar xf lazygit.tar.gz lazygit
-            sudo install lazygit /usr/local/bin
-            rm lazygit.tar.gz lazygit
-        fi
-
-    elif command -v pacman >/dev/null 2>&1; then
-        # Arch Linux
-        sudo pacman -Syu --noconfirm \
-            git \
-            curl \
-            wget \
-            jq \
-            tree \
-            htop \
-            tmux \
-            neovim \
-            fzf \
-            ripgrep \
-            fd \
-            bat \
-            exa \
-            delta \
-            base-devel \
-            cmake \
-            python \
-            python-pip \
-            go \
-            nodejs \
-            npm \
-            docker \
-            docker-compose \
-            lazygit \
-            lazydocker
-    fi
-
-    # Install Rust if not installed
-    if ! command -v cargo >/dev/null 2>&1; then
-        curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-        source $HOME/.cargo/env
-    fi
-
-    echo "Linux tools installed successfully!"
 }
 
 # Linux-specific PATH adjustments

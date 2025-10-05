@@ -1,0 +1,60 @@
+# API keys managed by 1Password
+
+export ANTHROPIC_API_KEY="{{ onepasswordRead \"op://Personal/API Keys/ANTHROPIC_API_KEY/credential\" }}"
+export OPENAI_API_KEY="{{ onepasswordRead \"op://Personal/API Keys/OPENAI_API_KEY/credential\" }}"
+export DEEPSEEK_KEY="{{ onepasswordRead \"op://Personal/API Keys/DEEPSEEK_KEY/credential\" }}"
+export REQUESTY_API_KEY="{{ onepasswordRead \"op://Personal/API Keys/REQUESTY_API_KEY/credential\" }}"
+export ZAI_API_KEY="{{ onepasswordRead \"op://Personal/API Keys/ZAI_API_KEY/credential\" }}"
+
+load_env ()
+{
+  # ~/.op-shell-v2.sh or inline in your .zshrc/.bashrc
+  if command -v op >/dev/null 2>&1; then
+    # Check auth by running a command requiring a live session
+    if ! op user get >/dev/null 2>&1; then
+      echo "[op] Not signed in. Attempting CLI login..."
+
+      # Use OP_ACCOUNT env var if set, otherwise fallback to interactive signin
+      if [ -n "$OP_ACCOUNT" ]; then
+        echo "[op] Using OP_ACCOUNT=$OP_ACCOUNT"
+        op signin --account "$OP_ACCOUNT"
+      else
+        op signin
+      fi
+    fi
+  else
+    echo "[op] 1Password CLI not found in PATH."
+  fi
+
+}
+override_claude_deepseek() {
+  export ANTHROPIC_API_KEY=$DEEPSEEK_KEY
+  export ANTHROPIC_AUTH_TOKEN=$DEEPSEEK_KEY
+
+  export ANTHROPIC_BASE_URL="https://api.deepseek.com/anthropic"
+  export ANTHROPIC_MODEL="deepseek-reasoner"
+  export ANTHROPIC_SMALL_FAST_MODEL="deepseek-chat"
+
+}
+
+override_claude_glm() {
+  export ANTHROPIC_BASE_URL="https://api.z.ai/api/anthropic"
+  export ANTHROPIC_AUTH_TOKEN=$ZAI_API_KEY
+  export ANTHROPIC_MODEL="glm-4.5"
+  export ANTHROPIC_SMALL_FAST_MODEL="glm-4.5-air"
+}
+
+override_claude_requesty() {
+  export ANTHROPIC_BASE_URL="https://router.requesty.ai" 
+  export ANTHROPIC_AUTH_TOKEN=$REQUESTY_API_KEY
+  export ANTHROPIC_MODEL="glm-4.5"
+  export ANTHROPIC_SMALL_FAST_MODEL="glm-4.5-air"
+}
+
+revert_claude_default() {
+  export ANTHROPIC_API_KEY=$ANTHROPIC_API_KEY
+  export ANTHROPIC_AUTH_TOKEN=$ANTHROPIC_AUTH_TOKEN
+  unset ANTHROPIC_BASE_URL
+  unset ANTHROPIC_MODEL
+  unset ANTHROPIC_SMALL_FAST_MODEL
+}
