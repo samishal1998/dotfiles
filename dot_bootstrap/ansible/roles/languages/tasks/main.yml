@@ -8,7 +8,7 @@
 
 - name: Ensure /usr/local/go/bin on PATH (Linux)
   lineinfile:
-    path: ~/.profile
+    path: "{{ item }}"
     create: yes
     line: 'export PATH="/usr/local/go/bin:$PATH"'
     state: present
