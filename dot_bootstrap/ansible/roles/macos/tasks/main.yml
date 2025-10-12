@@ -13,7 +13,7 @@
       - google-chrome
       - firefox
       - iterm2
-      - docker
+      # - docker
       - slack
       - discord
       - spotify
