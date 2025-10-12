@@ -166,7 +166,8 @@ export SVN_EDITOR="nvim"
 
 # Linux-specific completion settings
 # Enable bash completion for Linux
-if [[ -f /usr/share/bash-completion/bash_completion ]]; then
+SHELL=$0
+if [[ -f /usr/share/bash-completion/bash_completion && "$SHELL" == "bash" ]]; then
     . /usr/share/bash-completion/bash_completion
 fi
 
